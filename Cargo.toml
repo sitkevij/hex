@@ -1,0 +1,19 @@
+[package]
+name = "xxv"
+version = "0.1.0"
+authors = ["author https://github.com/sitkevij"]
+description = "hexdump utility."
+homepage = "https://github.com/sitkevij/xxv"
+repository = "https://github.com/sitkevij/xxv"
+
+# The development profile, used for `cargo build`.
+[profile.dev]
+opt-level = 0      # controls the `--opt-level` the compiler builds with.
+                   # 0-1 is good for debugging. 2 is well-optimized. Max is 3.
+codegen-units = 16  # if > 1 enables parallel code generation which improves
+                   # compile times, but prevents some optimizations.
+                   # Passes `-C codegen-units`. Ignored when `lto = true`.
+panic = 'unwind'   # panic strategy (`-C panic=...`), can also be 'abort'
+
+[dependencies]
+clap = "2.31.1"
