@@ -1,10 +1,10 @@
 [package]
-name = "xxv"
+name = "hex"
 version = "0.1.0"
 authors = ["author https://github.com/sitkevij"]
 description = "hexdump utility."
-homepage = "https://github.com/sitkevij/xxv"
-repository = "https://github.com/sitkevij/xxv"
+homepage = "https://github.com/sitkevij/hex"
+repository = "https://github.com/sitkevij/hex"
 
 # The development profile, used for `cargo build`.
 [profile.dev]
