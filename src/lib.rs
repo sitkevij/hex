@@ -1,5 +1,4 @@
-// Attribute to hide warnings for unused code.
-#![allow(dead_code)]
+// #![allow(dead_code)]
 extern crate clap;
 
 use clap::ArgMatches;
@@ -69,37 +68,6 @@ impl Page {
 /// b ⇒ Binary
 /// e ⇒ LowerExp
 /// E ⇒ UpperExp
-fn read1() {
-    let f = File::open("src/main.rs").unwrap();
-    let f = BufReader::new(f);
-    let mut column_count: i32 = 0x0;
-    let column_width: i32 = 10;
-    // let format_lower_hex: &'static str = "{:#x} ";
-    // let FORMAT_OCTAL = "{:#o} ";
-    for b in f.bytes() {
-        //if b.ok() == Some(b'a') {
-        //    count += 1
-        //}
-        //format!("{:#o}", b.unwrap());
-        print!("{:#b} ", b.unwrap());
-        column_count += 1;
-        if column_count > column_width {
-            println!("{}", "");
-            column_count = 0;
-        }
-    }
-    println!("{}", "");
-}
-
-// macro_rules! cell_format { ( $e:expr ) => ( println!("{:<10}", $e) ); }
-macro_rules! cell_format {
-    () => ("{:<10}")
-} // Pads with spaces on right to fill up 10 characters
-
-//macro_rules! offset_format {
-//    () => ("{:#08x}:")
-//} 
-
 /// offset column
 pub fn offset(b: u64) -> String {
     format!("{:#08x}", b)
@@ -141,24 +109,6 @@ pub fn print_byte(b: u8, format: Format) {
     }
 }
 
-/// leading zeros
-/// let flags = 0b0000000000101100u16;
-/// println!("flags: {:#018b}", flags);
-pub fn print_byte1(b: u8, format: Format) {
-    // println!(cell_format!(), b);
-    match format {
-        Format::Octal => print!("{:#o} ", b),
-        Format::LowerHex => print!("{:#x} ", b),
-        Format::UpperHex => print!("{:#X} ", b),
-        // Format::Pointer => print!("{:#p} ", b),
-        Format::Binary => print!("{:#b} ", b),
-        // Format::Binary => print!("{:#08b} ", b),
-        // Format::LowerExp => format!("{:e}", b),
-        // Format::UpperExp => print!("{:#E} ", b),
-        _ => println!("{}", "wtf"),
-    }
-}
-
 /// In most hex editor applications, the data of the computer file is 
 /// represented as hexadecimal values grouped in 4 groups of 4 bytes 
 /// (or two groups of 8 bytes), followed by one group of 16 printable ASCII
@@ -171,7 +121,7 @@ pub fn print_byte1(b: u8, format: Format) {
 /// 
 /// * `matches` - Argument matches from command line.
 pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
-    let mut column_count: u64 = 0x0;
+    // let column_count: u64 = 0x0;
     let mut column_width: u64 = 10;
 
     if let Some(file) = matches.value_of("INPUTFILE") {
@@ -233,52 +183,45 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
                 "g" => println!("{}", "}"),
                 _ => println!("unknown array format"),
             }
-        } else {
-            // or, to be safe, match the `Err`
-            // match "foobar".parse::<i32>() {
-            //     Ok(n) => do_something_with(n),
-            //     Err(e) => weep_and_moan(),
-            // }
-            
+        } else {            
             // Transforms this Read instance to an Iterator over its bytes. 
             // The returned type implements Iterator where the Item is 
             // Result<u8, R::Err>. The yielded item is Ok if a byte was 
             // successfully read and Err otherwise for I/O errors. EOF is mapped
             // to returning None from this iterator.
             // (https://doc.rust-lang.org/1.16.0/std/io/trait.Read.html#method.bytes)
-            let mut line: Line = Line::new();
+            let mut ascii_line: Line = Line::new();
             let mut offset_counter: u64 = 0x0;
-            let mut total_bytes: u64 = 0x0;
-            line.offset = offset_counter;
-            print_offset(offset_counter);
-            for b in buf.bytes() {
-                let b1: u8 = b.unwrap();
-                line.bytes += 1;
-                total_bytes += 1;
-                line.hex_body.push( b1 );
+            let mut byte_column: u64 = 0x0;
+            let mut page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
+            for line in page.body.iter() {
+                print_offset(offset_counter);
 
-                if b1 > 31 && b1 < 127 {
-                    line.ascii.push(b1 as char);
-                } else {
-                    line.ascii.push('.');
+                for hex in line.hex_body.iter() {
+                    // i += 1;
+                    offset_counter += 1;
+                    byte_column += 1;
+                    print_byte(*hex, format_out);
+            
+                    if *hex > 31 && *hex < 127 {
+                        ascii_line.ascii.push(*hex as char);
+                    } else {
+                        ascii_line.ascii.push('.');
+                    }
+                }
+                
+                if byte_column < column_width {
+                    print!("{:<1$}", "", 5 * (column_width - byte_column) as usize);
                 }
 
-                if column_count > column_width-1 {
-                    let s: String = line.ascii.iter().cloned().collect();
-                    line = Line::new();
-                    print!("{}", s);
-                    println!("{}", "");
-                    offset_counter += column_count as u64;
-                    print_offset(offset_counter);
-                    column_count = 0;
-                }
-                print_byte(b1, format_out);
-                column_count += 1;
+                byte_column = 0x0;
+                let ascii_string: String = ascii_line.ascii.iter().cloned().collect();
+                ascii_line = Line::new();
+                print!("{}", ascii_string); // print ascii string
+                println!("");
             }
-            println!("{}", "");
             if true {
-                println!("bytes: {}", total_bytes);
-                println!("  max: {}", <u64>::max_value())
+                println!("   bytes: {}", page.bytes);
             }
         }
     }
