@@ -15,5 +15,9 @@ codegen-units = 16  # if > 1 enables parallel code generation which improves
                    # Passes `-C codegen-units`. Ignored when `lto = true`.
 panic = 'unwind'   # panic strategy (`-C panic=...`), can also be 'abort'
 
+[profile.release]
+opt-level = 3
+
 [dependencies]
 clap = "2.31.1"
+ansi_term = "0.11"

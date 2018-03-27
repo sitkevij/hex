@@ -1,3 +1,4 @@
+services: docker
 language: rust
 rust:
   - stable
@@ -9,3 +10,4 @@ matrix:
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all -- --nocapture
+  - docker build -t sitkevij/stretch-slim:hex-0.1.0 .

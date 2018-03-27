@@ -1,35 +1,66 @@
+#![deny(missing_docs,
+        missing_debug_implementations, missing_copy_implementations,
+        trivial_casts, trivial_numeric_casts,
+        unsafe_code,
+        unstable_features,
+        unused_import_braces, unused_qualifications)]
 // #![allow(dead_code)]
+
+//! general hex lib
 extern crate clap;
+extern crate ansi_term;
 
 use clap::ArgMatches;
 use std::fs;
 use std::fs::File;
-use std::io::{Read};
+use std::io::Read;
 use std::io::BufReader;
+//use ansi_term::{Style, Color};
 
+/// nothing ⇒ Display
+/// ? ⇒ Debug
+/// o ⇒ Octal
+/// x ⇒ LowerHex
+/// X ⇒ UpperHex
+/// p ⇒ Pointer
+/// b ⇒ Binary
+/// e ⇒ LowerExp
+/// E ⇒ UpperExp
 /// evaulate for traits implementation
 /// https://stackoverflow.com/questions/27650312/show-u8-slice-in-hex-representation
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Format {
+    /// octal format
     Octal,
+    /// lower hex format
     LowerHex,
+    /// upper hex format
     UpperHex,
+    /// pointer format
     Pointer,
+    /// binary format
     Binary,
+    /// lower exp format
     LowerExp,
+    /// upper exp format
     UpperExp,
 }
 
 /// Line structure for hex output
 #[derive(Clone, Debug)]
 pub struct Line {
+    /// offset
     pub offset: u64,
+    /// hex body
     pub hex_body: Vec<u8>,
+    /// ascii text
     pub ascii: Vec<char>,
+    /// total bytes in Line
     pub bytes: u64
 }
 /// Line implementation
 impl Line {
+    /// Line constructor
     pub fn new() -> Line {
         Line {
             offset: 0x0,
@@ -41,15 +72,19 @@ impl Line {
 }
 
 /// Page structure
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Page {
+    /// page offset
     pub offset: u64,
+    /// page body
     pub body: Vec<Line>,
+    /// total bytes in page
     pub bytes: u64
 }
 
 /// Page implementation
 impl Page {
+    /// Page constructor
     pub fn new() -> Page {
         Page {
             offset: 0x0,
@@ -59,16 +94,11 @@ impl Page {
     }
 }
 
-/// nothing ⇒ Display
-/// ? ⇒ Debug
-/// o ⇒ Octal
-/// x ⇒ LowerHex
-/// X ⇒ UpperHex
-/// p ⇒ Pointer
-/// b ⇒ Binary
-/// e ⇒ LowerExp
-/// E ⇒ UpperExp
 /// offset column
+///  
+/// # Arguments 
+/// 
+/// * `b` - offset value.
 pub fn offset(b: u64) -> String {
     format!("{:#08x}", b)
 }
@@ -98,13 +128,24 @@ pub fn hex_binary(b: u8) -> String {
     format!("{:#010b}", b)
 }
 
+// pub fn color(color: u8, text: String) -> ansi_term::ANSIGenericString {
+//     ( ansi_term::Style::new()
+//         .fg(ansi_term::Color::Fixed( color ))
+//         .paint( "hi".to_string() ) )
+// }
+
 /// print byte to std out
 pub fn print_byte(b: u8, format: Format) {
+    let mut color: u8 = b;
+    if color < 1 {
+        color = 0x16;
+    }
+    // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
     match format {
-        Format::Octal => print!("{} ", hex_octal(b)),
-        Format::LowerHex => print!("{} ", hex_lower_hex(b)),
-        Format::UpperHex => print!("{} ", hex_upper_hex(b)),
-        Format::Binary => print!("{} ", hex_binary(b)),
+        Format::Octal => print!("{} ", ansi_term::Style::new().fg(ansi_term::Color::Fixed( color )).paint(hex_octal(b))),
+        Format::LowerHex => print!("{} ", ansi_term::Style::new().fg(ansi_term::Color::Fixed( color )).paint(hex_lower_hex(b))),
+        Format::UpperHex => print!("{} ", ansi_term::Style::new().fg(ansi_term::Color::Fixed( color )).paint(hex_upper_hex(b))),
+        Format::Binary => print!("{} ", ansi_term::Style::new().fg(ansi_term::Color::Fixed( color )).paint(hex_binary(b))),
         _ => print!("{}", "unk_fmt "),
     }
 }
@@ -198,7 +239,6 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
                 print_offset(offset_counter);
 
                 for hex in line.hex_body.iter() {
-                    // i += 1;
                     offset_counter += 1;
                     byte_column += 1;
                     print_byte(*hex, format_out);
@@ -273,6 +313,7 @@ pub fn buf_to_array(buf: &mut Read, buf_len: u64, column_width: u64) -> Result<P
 mod tests {
     use super::*;
     /// @see (https://users.rust-lang.org/t/how-to-test-output-to-stdout/4877/6)
+    /// @see (https://rustbyexample.com/hello/print/print_display.html)
     #[test]
     fn test_offset() {
         let b: u64 = 0x6;

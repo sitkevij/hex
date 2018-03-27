@@ -16,31 +16,31 @@ $ hex -c12 tests/files/alphanumeric.txt
 
 [![build](https://travis-ci.org/sitkevij/hex.svg?branch=master)](https://travis-ci.org/sitkevij/hex)
 
-# outputting source code arrays
+# feature: output arrays in rust, c or golang
 
 `hex` has a feature which can output the input file bytes as source code arrays. 
 
 For example:
 
-### rust array
+### rust array: -ar
 ```
-$ hex -ar -fx -c12 tests/files/tiny.txt
+$ hex -ar -c8 tests/files/tiny.txt
 let ARRAY: [u8; 3] = [
     0x69, 0x6c, 0x0a
 ];
 ```
 
-### c array
+### c array: -ac
 ```
-$ hex -ac -fx -c12 tests/files/tiny.txt
+$ hex -ac -c8 tests/files/tiny.txt
 unsigned char ARRAY[3] = {
     0x69, 0x6c, 0x0a
 };
 ```
 
-### golang array
+### golang array: -ag
 ```
-$ hex -ag -fx -c12 tests/files/tiny.txt
+$ hex -ag -c8 tests/files/tiny.txt
 a := [3]byte{
     0x69, 0x6c, 0x0a,
 }
