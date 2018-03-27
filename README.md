@@ -1,7 +1,7 @@
 # hex
 Futuristic take on hexdump.
 
-`hex` takes a file as input and outputs a hexadecimal view to stdout.
+`hex` takes a file as input and outputs a hexadecimal colorized view to stdout.
 
 ```
 $ hex -c12 tests/files/alphanumeric.txt
@@ -16,6 +16,23 @@ $ hex -c12 tests/files/alphanumeric.txt
 
 [![build](https://travis-ci.org/sitkevij/hex.svg?branch=master)](https://travis-ci.org/sitkevij/hex)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsitkevij%2Fhex.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsitkevij%2Fhex?ref=badge_shield)
+
+## examples
+
+### lower hex format -fx
+`$ hex src/main.rs`
+
+![lower hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/tests/files/hex_screenshot_macos_format_default.png "default hex output format")
+
+### binary format -fb
+`$ hex -fb -c4 src/main.rs`
+
+![binary hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/tests/files/hex_screenshot_macos_format_b.png)
+
+### octal format -fo
+`$ hex -fo -c8 src/main.rs`
+
+![octal hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/tests/files/hex_screenshot_macos_format_o.png)
 
 # feature: output arrays in rust, c or golang
 
