@@ -15,7 +15,6 @@ use std::fs;
 use std::fs::File;
 use std::io::Read;
 use std::io::BufReader;
-//use ansi_term::{Style, Color};
 
 /// nothing ⇒ Display
 /// ? ⇒ Debug
@@ -128,12 +127,6 @@ pub fn hex_binary(b: u8) -> String {
     format!("{:#010b}", b)
 }
 
-// pub fn color(color: u8, text: String) -> ansi_term::ANSIGenericString {
-//     ( ansi_term::Style::new()
-//         .fg(ansi_term::Color::Fixed( color ))
-//         .paint( "hi".to_string() ) )
-// }
-
 /// print byte to std out
 pub fn print_byte(b: u8, format: Format) {
     let mut color: u8 = b;
@@ -218,10 +211,10 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
         }
 
         match matches.occurrences_of("v") {
-            0 => print!(""),
-            1 => println!("Some verbose info"),
-            2 => println!("Tons of verbose info"),
-            3 | _ => println!("Don't be crazy"),
+            0 => print!("verbose none"),
+            1 => println!("verbose 1"),
+            2 => println!("verbose 2"),
+            3 | _ => println!("verbose max"),
         }
         // array output mode is mutually exclusive
         if let Some(array) = matches.value_of("array") {
@@ -322,12 +315,7 @@ pub fn buf_to_array(
         page.bytes += 1;
         line.hex_body.push(b1);
         column_count += 1;
-        // println!("page.bytes =              {}", page.bytes);
-        // println!("column_count =            {}", column_count);
-        // println!("column_width =            {}", column_width);
-        // println!("buf_len =                 {}", buf_len);
-        // println!("buf_len - column_width =  {}", buf_len - column_width);
-        // println!("");
+
         if column_count >= column_width {
             page.body.push(line);
             line = Line::new();
