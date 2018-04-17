@@ -40,6 +40,18 @@ fn main() {
                     .value_name("array_format")
                     .help("Output array in source code format: -a<value> accepts values `r` for rust, `c` for C, `g` for golang.")
                     .takes_value(true))
+        .arg(Arg::with_name("func")
+                    .short("u")
+                    .long("func")
+                    .value_name("func_length")
+                    .help("Function wave length")
+                    .takes_value(true))
+        .arg(Arg::with_name("places")
+                    .short("p")
+                    .long("places")
+                    .value_name("func_places")
+                    .help("Number of float places for function wave values")
+                    .takes_value(true))
        .get_matches();
 
     match lib::run(matches) {

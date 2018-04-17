@@ -15,6 +15,7 @@ use std::fs;
 use std::fs::File;
 use std::io::Read;
 use std::io::BufReader;
+use std::f64;
 
 /// nothing ⇒ Display
 /// ? ⇒ Debug
@@ -171,6 +172,25 @@ pub fn print_byte(b: u8, format: Format) {
     }
 }
 
+/// Function wave out.
+/// # Arguments
+///
+/// * `len` - Wave length.
+/// * `places` - Number of decimal places for function wave floats.
+pub fn func_out(len: u64, places: usize) {
+    for y in 0..len {
+        let y_float: f64 = y as f64;
+        let len_float: f64 = len as f64;
+        let x: f64 = ((((y_float / len_float)) * f64::consts::PI) / 2.0).sin();
+        let formatted_number = format!("{:.*}", places, x);
+        print!("{}", formatted_number);
+        print!(",");
+        if (y % 10) == 9 {
+            println!("");
+        }
+    }
+    println!("");
+}
 /// In most hex editor applications, the data of the computer file is
 /// represented as hexadecimal values grouped in 4 groups of 4 bytes
 /// (or two groups of 8 bytes), followed by one group of 16 printable ASCII
@@ -183,8 +203,15 @@ pub fn print_byte(b: u8, format: Format) {
 ///
 /// * `matches` - Argument matches from command line.
 pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
-    // let column_count: u64 = 0x0;
     let mut column_width: u64 = 10;
+
+    if let Some(len) = matches.value_of("func") {
+        let mut p: usize = 4;
+        if let Some(places) = matches.value_of("places") {
+            p = places.parse::<usize>().unwrap();
+        }
+        func_out(len.parse::<u64>().unwrap(), p);
+    }
 
     if let Some(file) = matches.value_of("INPUTFILE") {
         let f = File::open(file).unwrap();
@@ -211,7 +238,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
         }
 
         match matches.occurrences_of("v") {
-            0 => print!("verbose none"),
+            0 => print!(""),
             1 => println!("verbose 1"),
             2 => println!("verbose 2"),
             3 | _ => println!("verbose max"),
