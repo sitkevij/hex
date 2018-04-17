@@ -4,9 +4,13 @@ rust:
   - stable
   - beta
   - nightly
+os:
+  - linux
+  - osx
 matrix:
   allow_failures:
     - rust: nightly
+    - os: osx
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all -- --nocapture
