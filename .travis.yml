@@ -12,7 +12,6 @@ matrix:
     - rust: nightly
     - os: osx
 script:
-  - cargo fmt --all -- --write-mode=diff
   - cargo build --verbose --all
   - cargo test --verbose --all -- --nocapture
   - docker build -t sitkevij/stretch-slim:hex-0.1.2 .
