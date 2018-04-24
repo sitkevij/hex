@@ -1,6 +1,6 @@
 [package]
 name = "hex"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["author https://github.com/sitkevij"]
 description = "hexdump utility."
 homepage = "https://github.com/sitkevij/hex"

@@ -44,6 +44,8 @@ pub enum Format {
     LowerExp,
     /// upper exp format
     UpperExp,
+    /// unknown format
+    Unknown,
 }
 
 /// Line structure for hex output
@@ -129,46 +131,56 @@ pub fn hex_binary(b: u8) -> String {
 }
 
 /// print byte to std out
-pub fn print_byte(b: u8, format: Format) {
+pub fn print_byte(b: u8, format: Format, colorize: bool) {
     let mut color: u8 = b;
     if color < 1 {
         color = 0x16;
     }
-    // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
-    match format {
-        Format::Octal => {
-            print!(
-                "{} ",
-                ansi_term::Style::new()
-                    .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_octal(b))
-            )
+    if colorize {
+        // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
+        match format {
+            Format::Octal => {
+                print!(
+                    "{} ",
+                    ansi_term::Style::new()
+                        .fg(ansi_term::Color::Fixed(color))
+                        .paint(hex_octal(b))
+                )
+            }
+            Format::LowerHex => {
+                print!(
+                    "{} ",
+                    ansi_term::Style::new()
+                        .fg(ansi_term::Color::Fixed(color))
+                        .paint(hex_lower_hex(b))
+                )
+            }
+            Format::UpperHex => {
+                print!(
+                    "{} ",
+                    ansi_term::Style::new()
+                        .fg(ansi_term::Color::Fixed(color))
+                        .paint(hex_upper_hex(b))
+                )
+            }
+            Format::Binary => {
+                print!(
+                    "{} ",
+                    ansi_term::Style::new()
+                        .fg(ansi_term::Color::Fixed(color))
+                        .paint(hex_binary(b))
+                )
+            }
+            _ => print!("{}", "unk_fmt "),
         }
-        Format::LowerHex => {
-            print!(
-                "{} ",
-                ansi_term::Style::new()
-                    .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_lower_hex(b))
-            )
+    } else {
+        match format {
+            Format::Octal => print!("{} ", hex_octal(b)),
+            Format::LowerHex => print!("{} ", hex_lower_hex(b)),
+            Format::UpperHex => print!("{} ", hex_upper_hex(b)),
+            Format::Binary => print!("{} ", hex_binary(b)),
+            _ => print!("{}", "unk_fmt "),
         }
-        Format::UpperHex => {
-            print!(
-                "{} ",
-                ansi_term::Style::new()
-                    .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_upper_hex(b))
-            )
-        }
-        Format::Binary => {
-            print!(
-                "{} ",
-                ansi_term::Style::new()
-                    .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_binary(b))
-            )
-        }
-        _ => print!("{}", "unk_fmt "),
     }
 }
 
@@ -191,6 +203,7 @@ pub fn func_out(len: u64, places: usize) {
     }
     println!("");
 }
+
 /// In most hex editor applications, the data of the computer file is
 /// represented as hexadecimal values grouped in 4 groups of 4 bytes
 /// (or two groups of 8 bytes), followed by one group of 16 printable ASCII
@@ -204,23 +217,25 @@ pub fn func_out(len: u64, places: usize) {
 /// * `matches` - Argument matches from command line.
 pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
     let mut column_width: u64 = 10;
-
     if let Some(len) = matches.value_of("func") {
         let mut p: usize = 4;
         if let Some(places) = matches.value_of("places") {
             p = places.parse::<usize>().unwrap();
         }
         func_out(len.parse::<u64>().unwrap(), p);
-    }
-
-    if let Some(file) = matches.value_of("INPUTFILE") {
+    } else if let Some(file) = matches.value_of("INPUTFILE") {
         let f = File::open(file).unwrap();
-        let buf_len = fs::metadata(file)?.len();
+        let mut buf_len = fs::metadata(file)?.len();
         let mut buf = BufReader::new(f);
         let mut format_out = Format::LowerHex;
+        let mut colorize = true;
 
         if let Some(columns) = matches.value_of("cols") {
             column_width = columns.parse::<u64>().unwrap(); //turbofish
+        }
+
+        if let Some(length) = matches.value_of("len") {
+            buf_len = length.parse::<u64>().unwrap();
         }
 
         if let Some(format) = matches.value_of("format") {
@@ -233,7 +248,16 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
                 "b" => format_out = Format::Binary,
                 "e" => format_out = Format::LowerExp,
                 "E" => format_out = Format::UpperExp,
-                _ => print!("{}", "unk"), // Err("Unknown Format")
+                _ => format_out = Format::Unknown,
+            }
+        }
+
+        if let Some(color) = matches.value_of("color") {
+            let color_v = color.parse::<u8>().unwrap();
+            if color_v == 1 {
+                colorize = true;
+            } else {
+                colorize = false;
             }
         }
 
@@ -243,6 +267,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
             2 => println!("verbose 2"),
             3 | _ => println!("verbose max"),
         }
+
         // array output mode is mutually exclusive
         if let Some(array) = matches.value_of("array") {
             let mut array_format = array;
@@ -253,6 +278,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
                 "g" => println!("a := [{}]byte{{", page.bytes),
                 _ => println!("unknown array format"),
             }
+
             let mut i: u64 = 0x0;
             for line in page.body.iter() {
                 print!("    ");
@@ -289,7 +315,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
                 for hex in line.hex_body.iter() {
                     offset_counter += 1;
                     byte_column += 1;
-                    print_byte(*hex, format_out);
+                    print_byte(*hex, format_out, colorize);
 
                     if *hex > 31 && *hex < 127 {
                         ascii_line.ascii.push(*hex as char);
