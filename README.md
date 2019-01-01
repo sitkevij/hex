@@ -34,6 +34,17 @@ $ hex -c12 tests/files/alphanumeric.txt
 
 ![octal hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/tests/files/hex_screenshot_macos_format_o.png)
 
+# install
+
+From within the `hex` source code directory, run:
+```
+make install
+```
+
+Using `cargo`, the above will compile the release version, run tests and install release binary to `<USERDIR>/.cargo/bin/hex`.
+
+If `<USERDIR>/.cargo/bin` is part of the `PATH` evironment variable, `hex` should be able to be executed anywhere in the shell.
+
 # feature: output arrays in rust, c or golang
 
 `hex` has a feature which can output the input file bytes as source code arrays. 
