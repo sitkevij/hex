@@ -36,12 +36,17 @@ $ hex -c12 tests/files/alphanumeric.txt
 
 # install
 
-From within the `hex` source code directory, run:
+From within the `hex` source code directory, simply execute:
 ```
 make install
 ```
-
-Using `cargo`, the above will compile the release version, run tests and install release binary to `<USERDIR>/.cargo/bin/hex`.
+This will run the followng `cargo` commands:
+```
+cargo build --release
+cargo test --verbose --all -- --nocapture
+cargo install --path . 
+```
+Which will compile the release version, run tests and install release binary to `<USERDIR>/.cargo/bin/hex`.
 
 If `<USERDIR>/.cargo/bin` is part of the `PATH` evironment variable, `hex` should be able to be executed anywhere in the shell.
 
