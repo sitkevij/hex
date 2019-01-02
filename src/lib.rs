@@ -1,21 +1,26 @@
-#![deny(missing_docs,
-        missing_debug_implementations, missing_copy_implementations,
-        trivial_casts, trivial_numeric_casts,
-        unsafe_code,
-        unstable_features,
-        unused_import_braces, unused_qualifications)]
+#![deny(
+    missing_docs,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unsafe_code,
+    unstable_features,
+    unused_import_braces,
+    unused_qualifications
+)]
 // #![allow(dead_code)]
 
 //! general hex lib
-extern crate clap;
 extern crate ansi_term;
+extern crate clap;
 
 use clap::ArgMatches;
+use std::f64;
 use std::fs;
 use std::fs::File;
-use std::io::Read;
 use std::io::BufReader;
-use std::f64;
+use std::io::Read;
 
 /// nothing ⇒ Display
 /// ? ⇒ Debug
@@ -139,38 +144,30 @@ pub fn print_byte(b: u8, format: Format, colorize: bool) {
     if colorize {
         // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
         match format {
-            Format::Octal => {
-                print!(
-                    "{} ",
-                    ansi_term::Style::new()
-                        .fg(ansi_term::Color::Fixed(color))
-                        .paint(hex_octal(b))
-                )
-            }
-            Format::LowerHex => {
-                print!(
-                    "{} ",
-                    ansi_term::Style::new()
-                        .fg(ansi_term::Color::Fixed(color))
-                        .paint(hex_lower_hex(b))
-                )
-            }
-            Format::UpperHex => {
-                print!(
-                    "{} ",
-                    ansi_term::Style::new()
-                        .fg(ansi_term::Color::Fixed(color))
-                        .paint(hex_upper_hex(b))
-                )
-            }
-            Format::Binary => {
-                print!(
-                    "{} ",
-                    ansi_term::Style::new()
-                        .fg(ansi_term::Color::Fixed(color))
-                        .paint(hex_binary(b))
-                )
-            }
+            Format::Octal => print!(
+                "{} ",
+                ansi_term::Style::new()
+                    .fg(ansi_term::Color::Fixed(color))
+                    .paint(hex_octal(b))
+            ),
+            Format::LowerHex => print!(
+                "{} ",
+                ansi_term::Style::new()
+                    .fg(ansi_term::Color::Fixed(color))
+                    .paint(hex_lower_hex(b))
+            ),
+            Format::UpperHex => print!(
+                "{} ",
+                ansi_term::Style::new()
+                    .fg(ansi_term::Color::Fixed(color))
+                    .paint(hex_upper_hex(b))
+            ),
+            Format::Binary => print!(
+                "{} ",
+                ansi_term::Style::new()
+                    .fg(ansi_term::Color::Fixed(color))
+                    .paint(hex_binary(b))
+            ),
             _ => print!("{}", "unk_fmt "),
         }
     } else {
@@ -193,7 +190,7 @@ pub fn func_out(len: u64, places: usize) {
     for y in 0..len {
         let y_float: f64 = y as f64;
         let len_float: f64 = len as f64;
-        let x: f64 = ((((y_float / len_float)) * f64::consts::PI) / 2.0).sin();
+        let x: f64 = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
         let formatted_number = format!("{:.*}", places, x);
         print!("{}", formatted_number);
         print!(",");
