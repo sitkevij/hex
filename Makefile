@@ -9,7 +9,7 @@ DEBUG_DIR = $(TARGET_DIR)/debug
 RELEASE_DIR = $(TARGET_DIR)/release
 RLS_DIR = $(TARGET_DIR)/rls
 INSTALL_DIR = /usr/local/bin
-BINARY = hex
+BINARY = hx
 
 all: fmt test clean
 
@@ -33,7 +33,7 @@ install-force: clean release debug test
 	cargo install --path . --force
 
 docker:
-	docker build -t sitkevij/stretch-slim:hex-0.1.3 .
+	docker build -t sitkevij/stretch-slim:$(BINARY)-0.2.0 .
 
 clean: ## Remove all artifacts
 	rm -rf $(DEBUG_DIR)
