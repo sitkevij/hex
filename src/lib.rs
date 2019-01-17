@@ -32,7 +32,6 @@ use std::io::Read;
 /// e ⇒ LowerExp
 /// E ⇒ UpperExp
 /// evaulate for traits implementation
-/// https://stackoverflow.com/questions/27650312/show-u8-slice-in-hex-representation
 #[derive(Copy, Clone, Debug)]
 pub enum Format {
     /// octal format
@@ -341,10 +340,6 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
 
 /// Buffer to array.
 ///
-/// (https://rustbyexample.com/primitives/array.html)
-/// (https://stackoverflow.com/questions/39464237/whats-the-idiomatic-way-reference-bufreader-bufwriter-when-passing-between-funct)
-/// (https://stackoverflow.com/questions/39935158/bufreader-move-after-for-loop-with-bufreader-lines)
-///
 /// # Arguments
 ///
 /// * `buf` - Buffer to be read.
@@ -383,7 +378,6 @@ pub fn buf_to_array(
 mod tests {
     use super::*;
     /// @see (https://users.rust-lang.org/t/how-to-test-output-to-stdout/4877/6)
-    /// @see (https://rustbyexample.com/hello/print/print_display.html)
     #[test]
     fn test_offset() {
         let b: u64 = 0x6;

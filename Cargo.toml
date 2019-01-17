@@ -2,9 +2,9 @@
 authors = ["sitkevij https://github.com/sitkevij"]
 categories = ["command-line-utilities","debugging"]
 description = "Futuristic take on hexdump, made in Rust."
-exclude = ["assets/**/*"]
+include = ["src/**/*","Cargo.toml"]
 homepage = "https://github.com/sitkevij/hex"
-keywords    = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
+keywords = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
 license = "MIT"
 name = "hx"
 version = "0.2.0"
