@@ -1,13 +1,13 @@
 FROM sitkevij/alpine-rust:rustup.rs
-ENTRYPOINT  ["hex"]
+ENTRYPOINT  ["hx"]
 WORKDIR     /tmp/hex
-LABEL org.label-schema.name="hex" \
+LABEL org.label-schema.name="hx" \
       org.label-schema.description="Futuristic take on hexdump, made in rust" \
       org.label-schema.url="https://hub.docker.com/r/sitkevij/hex/" \
       org.label-schema.usage="https://github.com/sitkevij/hex/blob/master/README.md" \
       org.label-schema.vcs-url="https://github.com/sitkevij/hex" \
       org.label-schema.vendor="sitkevij" \
-      org.label-schema.version="0.1.0" \
+      org.label-schema.version="0.2.0" \
       maintainer="https://github.com/sitkevij"
 # RUN echo "export PATH=$PATH:~/.cargo/bin"  >> ~/.profile && source ~/.profile
 COPY . .

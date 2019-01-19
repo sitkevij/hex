@@ -1,10 +1,16 @@
 [package]
-name = "hex"
-version = "0.1.3"
-authors = ["author https://github.com/sitkevij"]
-description = "hexdump utility."
+authors = ["sitkevij"]
+categories = ["command-line-utilities","debugging"]
+description = "Futuristic take on hexdump, made in Rust."
+include = ["src/**/*","Cargo.toml","Cargo.lock"]
 homepage = "https://github.com/sitkevij/hex"
-repository = "https://github.com/sitkevij/hex"
+keywords = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
+license = "MIT"
+name = "hx"
+version = "0.2.0"
+
+[badges]
+travis-ci = { repository = "sitkevij/hex", branch = "master" }
 
 # The development profile, used for `cargo build`.
 [profile.dev]
