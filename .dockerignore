@@ -1,5 +1,7 @@
 target/
 Cargo.lock
+Cargo.toml
 LICENSE
+Makefile
 README.md
 **/*.rs.bk

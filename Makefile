@@ -16,7 +16,7 @@ all: fmt test clean
 fmt:
 	cargo +nightly fmt --verbose
 
-debug: test
+debug:
 	cargo build
 
 release: test

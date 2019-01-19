@@ -1,7 +1,8 @@
-# hx
-Futuristic take on hexdump. Pronounce `hx` like _hex_.
+# hex (hx)
 
-`hx` takes a file as input and outputs a hexadecimal colorized view to stdout.
+Futuristic take on hexdump.
+
+`hex` takes a file as input and outputs a hexadecimal colorized view to stdout.
 
 ```
 $ hx -c12 tests/files/alphanumeric.txt
@@ -17,54 +18,69 @@ $ hx -c12 tests/files/alphanumeric.txt
 [![build](https://travis-ci.org/sitkevij/hex.svg?branch=master)](https://travis-ci.org/sitkevij/hex)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsitkevij%2Fhex.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsitkevij%2Fhex?ref=badge_shield)
 
+## quick links
+
+* [install](#install)
+* [features](#features)
+* [license](#license)
+
 ## examples
 
 ### lower hex format -fx
+
 `$ hx src/main.rs`
 
 ![lower hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/assets/hex_screenshot_macos_format_default.png "default output format")
 
 ### binary hex format -fb
+
 `$ hx -fb -c4 src/main.rs`
 
 ![binary hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/assets/hex_screenshot_macos_format_b.png)
 
 ### octal hex format -fo
+
 `$ hx -fo -c8 src/main.rs`
 
 ![octal hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/assets/hex_screenshot_macos_format_o.png)
 
-# install
-## crates.io install
+## install
+
+### crates.io install
+
 If `cargo` is already installed, simply:
 ```
 cargo install hx 
 ```
 
-## source install
+### source install
+
 From within the `hx` source code directory, simply execute:
 ```
 make install
 ```
+
 This will run the following `cargo` commands:
 ```
 cargo build --release
 cargo test --verbose --all -- --nocapture
 cargo install --path . 
 ```
+
 Which will compile the release version, run tests and install release binary to `<USERDIR>/.cargo/bin/hx`.
 
 If `<USERDIR>/.cargo/bin` is part of the `PATH` evironment variable, `hx` should be able to be executed anywhere in the shell.
 
-# features 
+## features 
 
-## output arrays in rust, c or golang
+### output arrays in `rust`, `c` or `golang`
 
 `hx` has a feature which can output the input file bytes as source code arrays. 
 
 For example:
 
-### rust array: -ar
+#### rust array: -ar
+
 ```
 $ hx -ar -c8 tests/files/tiny.txt
 let ARRAY: [u8; 3] = [
@@ -72,7 +88,8 @@ let ARRAY: [u8; 3] = [
 ];
 ```
 
-### c array: -ac
+#### c array: -ac
+
 ```
 $ hx -ac -c8 tests/files/tiny.txt
 unsigned char ARRAY[3] = {
@@ -80,7 +97,8 @@ unsigned char ARRAY[3] = {
 };
 ```
 
-### golang array: -ag
+#### golang array: -ag
+
 ```
 $ hx -ag -c8 tests/files/tiny.txt
 a := [3]byte{
@@ -88,5 +106,8 @@ a := [3]byte{
 }
 ```
 
-## License
+## license
+
+MIT
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsitkevij%2Fhex.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsitkevij%2Fhex?ref=badge_large)

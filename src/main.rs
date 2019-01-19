@@ -6,10 +6,15 @@ use std::process;
 
 /// Central application entry point.
 fn main() {
+    let desc: &str = &format!(
+        "{}\n{}",
+        env!("CARGO_PKG_DESCRIPTION"),
+        env!("CARGO_PKG_HOMEPAGE")
+    )
+    .to_string();
     let app = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
-        .about(env!("CARGO_PKG_DESCRIPTION")) // CARGO_PKG_HOMEPAGE
-        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(desc)
         .arg(
             Arg::with_name("cols")
                 .short("c")
