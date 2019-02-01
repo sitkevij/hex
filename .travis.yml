@@ -31,7 +31,7 @@ script:
   - cargo test --verbose --all -- --nocapture
   - docker build -t sitkevij/stretch-slim:hex-latest .
 
-after_succes:
+after_success:
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
         wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
         tar xzf master.tar.gz &&
