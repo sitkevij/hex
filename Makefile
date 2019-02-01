@@ -14,7 +14,7 @@ BINARY = hx
 all: fmt test clean
 
 fmt:
-	cargo +nightly fmt --verbose
+	cargo fmt --verbose
 
 debug:
 	cargo build

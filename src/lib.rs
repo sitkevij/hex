@@ -53,7 +53,7 @@ pub enum Format {
 }
 
 /// Line structure for hex output
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Line {
     /// offset
     pub offset: u64,
@@ -78,7 +78,7 @@ impl Line {
 }
 
 /// Page structure
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Page {
     /// page offset
     pub offset: u64,
@@ -167,7 +167,7 @@ pub fn print_byte(b: u8, format: Format, colorize: bool) {
                     .fg(ansi_term::Color::Fixed(color))
                     .paint(hex_binary(b))
             ),
-            _ => print!("{}", "unk_fmt "),
+            _ => print!("unk_fmt "),
         }
     } else {
         match format {
@@ -175,7 +175,7 @@ pub fn print_byte(b: u8, format: Format, colorize: bool) {
             Format::LowerHex => print!("{} ", hex_lower_hex(b)),
             Format::UpperHex => print!("{} ", hex_upper_hex(b)),
             Format::Binary => print!("{} ", hex_binary(b)),
-            _ => print!("{}", "unk_fmt "),
+            _ => print!("unk_fmt "),
         }
     }
 }
@@ -194,10 +194,10 @@ pub fn func_out(len: u64, places: usize) {
         print!("{}", formatted_number);
         print!(",");
         if (y % 10) == 9 {
-            println!("");
+            println!();
         }
     }
-    println!("");
+    println!();
 }
 
 /// In most hex editor applications, the data of the computer file is
@@ -286,12 +286,12 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
                         print!("{}, ", hex_lower_hex(*hex));
                     }
                 }
-                println!("");
+                println!();
             }
             match array_format {
-                "r" => println!("{}", "];"),
-                "c" => println!("{}", "};"),
-                "g" => println!("{}", "}"),
+                "r" => println!("];"),
+                "c" => println!("}};"),
+                "g" => println!("}}"),
                 _ => println!("unknown array format"),
             }
         } else {
@@ -328,7 +328,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
                 let ascii_string: String = ascii_line.ascii.iter().cloned().collect();
                 ascii_line = Line::new();
                 print!("{}", ascii_string); // print ascii string
-                println!("");
+                println!();
             }
             if true {
                 println!("   bytes: {}", page.bytes);
@@ -366,7 +366,7 @@ pub fn buf_to_array(
             line = Line::new();
             column_count = 0;
         }
-        if page.bytes == buf_len || max_array_size as u64 == buf_len {
+        if page.bytes == buf_len || u64::from(max_array_size) == buf_len {
             page.body.push(line);
             break;
         }
