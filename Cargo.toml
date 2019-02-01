@@ -7,10 +7,12 @@ homepage = "https://github.com/sitkevij/hex"
 keywords = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
 license = "MIT"
 name = "hx"
-version = "0.2.0"
+version = "0.2.1"
 
+# see https://doc.rust-lang.org/cargo/reference/manifest.html
 [badges]
 travis-ci = { repository = "sitkevij/hex", branch = "master" }
+codecov = { repository = "sitkevij/hex", branch = "master", service = "github" }
 
 # The development profile, used for `cargo build`.
 [profile.dev]

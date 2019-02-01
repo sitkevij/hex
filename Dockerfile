@@ -6,7 +6,7 @@ LABEL org.label-schema.name="hx" \
       org.label-schema.usage="https://github.com/sitkevij/hex/blob/master/README.md" \
       org.label-schema.vcs-url="https://github.com/sitkevij/hex" \
       org.label-schema.vendor="sitkevij" \
-      org.label-schema.version="0.2.0" \
+      org.label-schema.version="0.2.1" \
       maintainer="https://github.com/sitkevij"
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
