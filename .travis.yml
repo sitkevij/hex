@@ -1,4 +1,19 @@
 services: docker
+sudo: true
+
+before_install:
+  - sudo apt-get update
+
+addons:
+  apt:
+    packages:
+      - libcurl4-openssl-dev
+      - libelf-dev
+      - libdw-dev
+      - cmake
+      - gcc
+      - binutils-dev
+      
 language: rust
 rust:
   - stable
