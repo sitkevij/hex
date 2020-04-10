@@ -76,14 +76,6 @@ fn main() {
                 .takes_value(true),
         );
 
-    let args: Vec<_> = env::args().collect();
-    if args.len() == 1 {
-        app.clone().print_help().unwrap();
-        println!();
-        println!();
-        process::exit(0);
-    }
-
     let matches = app.get_matches();
     match lib::run(matches) {
         Ok(_) => {
