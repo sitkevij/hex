@@ -41,7 +41,7 @@ fn main() {
         .arg(
             Arg::with_name("INPUTFILE")
                 .help("Pass file path as an argument for hex dump")
-                .required(true)
+                .required(false)
                 .index(1),
         )
         .arg(
@@ -57,15 +57,6 @@ fn main() {
                 .help("Set color tint terminal output. 0 to disable, 1 to enable")
                 .default_value("1")
                 .possible_values(&["0", "1"])
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("array")
-                .short("a")
-                .long("array")
-                .value_name("array_format")
-                .help("Set source code format output: rust (r), C (c), golang (g)")
-                .possible_values(&["r", "c", "g"])
                 .takes_value(true),
         )
         .arg(

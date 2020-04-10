@@ -17,10 +17,8 @@ extern crate clap;
 
 use clap::ArgMatches;
 use std::f64;
-use std::fs;
-use std::fs::File;
-use std::io::BufReader;
-use std::io::Read;
+use std::fs::{self, File};
+use std::io::{self, BufReader, Read};
 
 /// nothing ⇒ Display
 /// ? ⇒ Debug
@@ -191,8 +189,7 @@ pub fn func_out(len: u64, places: usize) {
         let len_float: f64 = len as f64;
         let x: f64 = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
         let formatted_number = format!("{:.*}", places, x);
-        print!("{}", formatted_number);
-        print!(",");
+        print!("{},", formatted_number);
         if (y % 10) == 9 {
             println!();
         }
@@ -212,166 +209,115 @@ pub fn func_out(len: u64, places: usize) {
 ///
 /// * `matches` - Argument matches from command line.
 pub fn run(matches: ArgMatches) -> Result<(), Box<dyn (::std::error::Error)>> {
-    let mut column_width: u64 = 10;
+    let mut column_width: usize = 10;
     if let Some(len) = matches.value_of("func") {
         let mut p: usize = 4;
         if let Some(places) = matches.value_of("places") {
             p = places.parse::<usize>().unwrap();
         }
         func_out(len.parse::<u64>().unwrap(), p);
-    } else if let Some(file) = matches.value_of("INPUTFILE") {
-        let f = File::open(file).unwrap();
-        let mut buf_len = fs::metadata(file)?.len();
-        let mut buf = BufReader::new(f);
-        let mut format_out = Format::LowerHex;
-        let mut colorize = true;
+    }
 
-        if let Some(columns) = matches.value_of("cols") {
-            column_width = columns.parse::<u64>().unwrap(); //turbofish
-        }
-
-        if let Some(length) = matches.value_of("len") {
-            buf_len = length.parse::<u64>().unwrap();
-        }
-
-        if let Some(format) = matches.value_of("format") {
-            // o, x, X, p, b, e, E
-            match format {
-                "o" => format_out = Format::Octal,
-                "x" => format_out = Format::LowerHex,
-                "X" => format_out = Format::UpperHex,
-                "p" => format_out = Format::Pointer,
-                "b" => format_out = Format::Binary,
-                "e" => format_out = Format::LowerExp,
-                "E" => format_out = Format::UpperExp,
-                _ => format_out = Format::Unknown,
-            }
-        }
-
-        if let Some(color) = matches.value_of("color") {
-            let color_v = color.parse::<u8>().unwrap();
-            if color_v == 1 {
-                colorize = true;
-            } else {
-                colorize = false;
-            }
-        }
-
-        match matches.occurrences_of("v") {
-            0 => print!(""),
-            1 => println!("verbose 1"),
-            2 => println!("verbose 2"),
-            _ => println!("verbose max"),
-        }
-
-        // array output mode is mutually exclusive
-        if let Some(array) = matches.value_of("array") {
-            let array_format = array;
-            let page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
-            match array_format {
-                "r" => println!("let ARRAY: [u8; {}] = [", page.bytes),
-                "c" => println!("unsigned char ARRAY[{}] = {{", page.bytes),
-                "g" => println!("a := [{}]byte{{", page.bytes),
-                _ => println!("unknown array format"),
-            }
-
-            let mut i: u64 = 0x0;
-            for line in page.body.iter() {
-                print!("    ");
-                for hex in line.hex_body.iter() {
-                    i += 1;
-                    if i == buf_len && array_format != "g" {
-                        print!("{}", hex_lower_hex(*hex));
-                    } else {
-                        print!("{}, ", hex_lower_hex(*hex));
-                    }
-                }
-                println!();
-            }
-            match array_format {
-                "r" => println!("];"),
-                "c" => println!("}};"),
-                "g" => println!("}}"),
-                _ => println!("unknown array format"),
-            }
+    let mut reader: Box<dyn Read> = if let Some(file) = matches.value_of("INPUTFILE") {
+        if file == "-" {
+            Box::new(io::stdin())
         } else {
-            // Transforms this Read instance to an Iterator over its bytes.
-            // The returned type implements Iterator where the Item is
-            // Result<u8, R::Err>. The yielded item is Ok if a byte was
-            // successfully read and Err otherwise for I/O errors. EOF is mapped
-            // to returning None from this iterator.
-            // (https://doc.rust-lang.org/1.16.0/std/io/trait.Read.html#method.bytes)
-            let mut ascii_line: Line = Line::new();
-            let mut offset_counter: u64 = 0x0;
-            let mut byte_column: u64 = 0x0;
-            let page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
-            for line in page.body.iter() {
-                print_offset(offset_counter);
+            let f = File::open(file).unwrap();
+            Box::new(BufReader::new(f))
+        }
+    } else {
+        Box::new(io::stdin())
+    };
 
-                for hex in line.hex_body.iter() {
-                    offset_counter += 1;
-                    byte_column += 1;
-                    print_byte(*hex, format_out, colorize);
+    let mut format_out = Format::LowerHex;
+    let mut colorize = true;
 
-                    if *hex > 31 && *hex < 127 {
-                        ascii_line.ascii.push(*hex as char);
-                    } else {
-                        ascii_line.ascii.push('.');
-                    }
-                }
+    if let Some(columns) = matches.value_of("cols") {
+        column_width = columns.parse::<usize>().unwrap(); //turbofish
+    }
 
-                if byte_column < column_width {
-                    print!("{:<1$}", "", 5 * (column_width - byte_column) as usize);
-                }
+    // optional max length
+    let max_length = matches
+        .value_of("len")
+        .map(|length| length.parse::<usize>().unwrap());
 
-                byte_column = 0x0;
-                let ascii_string: String = ascii_line.ascii.iter().cloned().collect();
-                ascii_line = Line::new();
-                print!("{}", ascii_string); // print ascii string
-                println!();
-            }
-            if true {
-                println!("   bytes: {}", page.bytes);
-            }
+    if let Some(format) = matches.value_of("format") {
+        // o, x, X, p, b, e, E
+        match format {
+            "o" => format_out = Format::Octal,
+            "x" => format_out = Format::LowerHex,
+            "X" => format_out = Format::UpperHex,
+            "p" => format_out = Format::Pointer,
+            "b" => format_out = Format::Binary,
+            "e" => format_out = Format::LowerExp,
+            "E" => format_out = Format::UpperExp,
+            _ => format_out = Format::Unknown,
         }
     }
-    Ok(())
-}
 
-/// Buffer to array.
-///
-/// # Arguments
-///
-/// * `buf` - Buffer to be read.
-/// * `buf_len` - Buffer length.
-/// * `column_width` - column width for output.
-pub fn buf_to_array(
-    buf: &mut dyn Read,
-    buf_len: u64,
-    column_width: u64,
-) -> Result<Page, Box<dyn (::std::error::Error)>> {
-    let mut column_count: u64 = 0x0;
-    let max_array_size: u16 = <u16>::max_value(); // 2^16;
-    let mut page: Page = Page::new();
-    let mut line: Line = Line::new();
-    for b in buf.bytes() {
-        let b1: u8 = b.unwrap();
-        line.bytes += 1;
-        page.bytes += 1;
-        line.hex_body.push(b1);
-        column_count += 1;
-
-        if column_count >= column_width {
-            page.body.push(line);
-            line = Line::new();
-            column_count = 0;
+    if let Some(color) = matches.value_of("color") {
+        let color_v = color.parse::<u8>().unwrap();
+        if color_v == 1 {
+            colorize = true;
+        } else {
+            colorize = false;
         }
-        if page.bytes == buf_len || u64::from(max_array_size) == buf_len {
-            page.body.push(line);
+    }
+
+    match matches.occurrences_of("v") {
+        0 => print!(""),
+        1 => println!("verbose 1"),
+        2 => println!("verbose 2"),
+        _ => println!("verbose max"),
+    }
+
+    // Transforms this Read instance to an Iterator over its bytes.
+    // The returned type implements Iterator where the Item is
+    // Result<u8, R::Err>. The yielded item is Ok if a byte was
+    // successfully read and Err otherwise for I/O errors. EOF is mapped
+    // to returning None from this iterator.
+    // (https://doc.rust-lang.org/1.16.0/std/io/trait.Read.html#method.bytes)
+    let _ascii_line: Line = Line::new();
+    let offset_counter: u64 = 0x0;
+    let mut byte_column: usize = 0x0;
+    // let page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
+
+    let mut buf = vec![0; column_width];
+    let mut total = 0;
+    loop {
+        let mut n = reader.read(&mut buf)?;
+        if let Some(max_length) = max_length {
+            if total + n > max_length {
+                n = max_length - total;
+            }
+        }
+        if n == 0 {
             break;
         }
+        total += n;
+
+        print_offset(offset_counter);
+        let mut ascii_string = String::new();
+        for b in &buf[..n] {
+            byte_column += 1;
+            print_byte(*b, format_out, colorize);
+
+            if *b > 31 && *b < 127 {
+                ascii_string.push(*b as char);
+            } else {
+                ascii_string.push('.');
+            }
+        }
+
+        if byte_column < column_width {
+            print!("{:<1$}", "", 5 * (column_width - byte_column));
+        }
+
+        byte_column = 0;
+        println!("{}", ascii_string);
     }
-    Ok(page)
+
+    Ok(())
 }
 
 #[cfg(test)]
