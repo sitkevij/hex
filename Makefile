@@ -32,6 +32,9 @@ install: release debug test
 install-force: clean release debug test
 	cargo install --path . --force
 
+clippy:
+	cargo clippy
+
 docker:
 	docker build -t sitkevij/stretch-slim:$(BINARY)-0.2.0 .
 

@@ -10,8 +10,7 @@ fn main() {
         "{}\n{}",
         env!("CARGO_PKG_DESCRIPTION"),
         env!("CARGO_PKG_HOMEPAGE")
-    )
-    .to_string();
+    );
     let app = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .about(desc)
