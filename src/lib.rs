@@ -211,7 +211,7 @@ pub fn func_out(len: u64, places: usize) {
 /// # Arguments
 ///
 /// * `matches` - Argument matches from command line.
-pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
+pub fn run(matches: ArgMatches) -> Result<(), Box<dyn ::std::error::Error>> {
     let mut column_width: u64 = 10;
     if let Some(len) = matches.value_of("func") {
         let mut p: usize = 4;
@@ -266,8 +266,8 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
 
         // array output mode is mutually exclusive
         if let Some(array) = matches.value_of("array") {
-            let mut array_format = array;
-            let mut page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
+            let array_format = array;
+            let page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
             match array_format {
                 "r" => println!("let ARRAY: [u8; {}] = [", page.bytes),
                 "c" => println!("unsigned char ARRAY[{}] = {{", page.bytes),
@@ -304,7 +304,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
             let mut ascii_line: Line = Line::new();
             let mut offset_counter: u64 = 0x0;
             let mut byte_column: u64 = 0x0;
-            let mut page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
+            let page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
             for line in page.body.iter() {
                 print_offset(offset_counter);
 
@@ -346,10 +346,10 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<::std::error::Error>> {
 /// * `buf_len` - Buffer length.
 /// * `column_width` - column width for output.
 pub fn buf_to_array(
-    buf: &mut Read,
+    buf: &mut dyn Read,
     buf_len: u64,
     column_width: u64,
-) -> Result<Page, Box<::std::error::Error>> {
+) -> Result<Page, Box<dyn ::std::error::Error>> {
     let mut column_count: u64 = 0x0;
     let max_array_size: u16 = <u16>::max_value(); // 2^16;
     let mut page: Page = Page::new();
