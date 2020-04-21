@@ -217,6 +217,7 @@ pub fn print_byte(b: u8, format: Format, colorize: bool) {
 /// * `matches` - Argument matches from command line.
 pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
     let mut column_width: u64 = 10;
+    let mut truncate_len: u64 = 0x0;
     if let Some(len) = matches.value_of("func") {
         let mut p: usize = 4;
         if let Some(places) = matches.value_of("places") {
@@ -229,12 +230,20 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         //  $ cat Cargo.toml | target/debug/hx -a r
         //  $ target/debug/hx Cargo.toml
         //  $ target/debug/hx Cargo.toml -a r
+        // -----
+        // let mut buf: Box<dyn BufRead> = match is_stdin.unwrap() {
+        //     true => Box::new(BufReader::new(io::stdin())),
+        //     false => Box::new(BufReader::new(
+        //         fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap(),
+        //     )),
+        // };
         let is_stdin = is_stdin(matches.clone());
-        let mut buf: Box<dyn BufRead> = match is_stdin.unwrap() {
-            true => Box::new(BufReader::new(io::stdin())),
-            false => Box::new(BufReader::new(
+        let mut buf: Box<dyn BufRead> = if is_stdin.unwrap() {
+            Box::new(BufReader::new(io::stdin()))
+        } else {
+            Box::new(BufReader::new(
                 fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap(),
-            )),
+            ))
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
@@ -243,8 +252,8 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             column_width = columns.parse::<u64>().unwrap(); //turbofish
         }
 
-        if let Some(_length) = matches.value_of(ARG_LEN) {
-            // buf_len = length.parse::<u64>().unwrap();
+        if let Some(length) = matches.value_of(ARG_LEN) {
+            truncate_len = length.parse::<u64>().unwrap();
         }
 
         if let Some(format) = matches.value_of(ARG_FMT) {
@@ -272,7 +281,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 
         // array output mode is mutually exclusive
         if let Some(array) = matches.value_of(ARG_ARR) {
-            output_array(array, buf, column_width);
+            output_array(array, buf, truncate_len, column_width);
         } else {
             // Transforms this Read instance to an Iterator over its bytes.
             // The returned type implements Iterator where the Item is
@@ -283,7 +292,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             let mut ascii_line: Line = Line::new();
             let mut offset_counter: u64 = 0x0;
             let mut byte_column: u64 = 0x0;
-            let page = buf_to_array(&mut buf, column_width).unwrap();
+            let page = buf_to_array(&mut buf, truncate_len, column_width).unwrap();
 
             for line in page.body.iter() {
                 print_offset(offset_counter);
@@ -334,12 +343,8 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
         }
         for arg in ARGS.iter() {
             if let Some(index) = matches.index_of(arg) {
-                if DBG > 0 {
-                    dbg!("matches.index_of(arg) {0} {1}", arg, index);
-                }
-                match index {
-                    2 => is_stdin = true,
-                    _ => println!("arg index {}", index),
+                if let 2 = index {
+                    is_stdin = true;
                 }
             }
         }
@@ -362,9 +367,15 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
 ///
 /// * `array_format` - array format, rust (r), C (c), golang (g).
 /// * `buf` - BufRead.
+/// * `truncate_len` - truncate to length.
 /// * `column_width` - column width.
-pub fn output_array(array_format: &str, mut buf: Box<dyn BufRead>, column_width: u64) {
-    let page = buf_to_array(&mut buf, column_width).unwrap();
+pub fn output_array(
+    array_format: &str,
+    mut buf: Box<dyn BufRead>,
+    truncate_len: u64,
+    column_width: u64,
+) {
+    let page = buf_to_array(&mut buf, truncate_len, column_width).unwrap();
     match array_format {
         "r" => println!("let ARRAY: [u8; {}] = [", page.bytes),
         "c" => println!("unsigned char ARRAY[{}] = {{", page.bytes),
@@ -417,15 +428,15 @@ pub fn output_function(len: u64, places: usize) {
 /// # Arguments
 ///
 /// * `buf` - Buffer to be read.
-/// * `buf_len` - Buffer length.
+/// * `buf_len` - force buffer length.
 /// * `column_width` - column width for output.
 pub fn buf_to_array(
     buf: &mut dyn Read,
-    // buf_len: u64,
+    buf_len: u64,
     column_width: u64,
 ) -> Result<Page, Box<dyn ::std::error::Error>> {
     let mut column_count: u64 = 0x0;
-    // let max_array_size: u16 = <u16>::max_value(); // 2^16;
+    let max_array_size: u16 = <u16>::max_value(); // 2^16;
     let mut page: Page = Page::new();
     let mut line: Line = Line::new();
     for b in buf.bytes() {
@@ -441,10 +452,9 @@ pub fn buf_to_array(
             column_count = 0;
         }
 
-        // if page.bytes == buf_len || u64::from(max_array_size) == buf_len {
-        //     page.body.push(line);
-        //     break;
-        // }
+        if buf_len > 0 && (page.bytes == buf_len || u64::from(max_array_size) == buf_len) {
+            break;
+        }
     }
     page.body.push(line);
     Ok(page)
