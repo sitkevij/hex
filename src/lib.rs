@@ -10,7 +10,6 @@
     unused_import_braces,
     unused_qualifications
 )]
-// #![allow(dead_code)]
 
 //! general hex lib
 extern crate ansi_term;
@@ -19,10 +18,7 @@ extern crate clap;
 use clap::ArgMatches;
 use std::f64;
 use std::fs;
-// use std::fs::File;
 use std::io::BufReader;
-// use std::io::Read;
-// use std::io::{self, Read};
 use std::io::{self, BufRead, Read};
 use std::env;
 use std::error::Error;
@@ -35,8 +31,6 @@ pub const ARG_LEN: &str = "len";
 pub const ARG_FMT: &str = "format";
 /// arg INPUTFILE
 pub const ARG_INP: &str = "INPUTFILE";
-/// arg v
-// pub const ARG_VRB: &str = "v";
 /// arg color
 pub const ARG_CLR: &str = "color";
 /// arg array
@@ -228,7 +222,6 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             p = places.parse::<usize>().unwrap();
         }
         output_function(len.parse::<u64>().unwrap(), p);
-    // } else if let Some(_file) = matches.value_of("INPUTFILE") {
     } else {
         // cases:
         //  $ cat Cargo.toml | target/debug/hx
@@ -239,21 +232,10 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         //  - match the possible args, to determine if input file in nth 1 arg
         //  (index 2) position.
         let is_stdin = is_stdin(matches.clone());
-
-        // let mut buf: Box<dyn BufRead> = match input {
-        //     None => Box::new(BufReader::new(io::stdin())),
-        //     // Some("-".to_string()) => Box::new(BufReader::new(io::stdin())),
-        //     Some(_file) => Box::new(BufReader::new(fs::File::open(_file).unwrap()))
-        // };
-        // let input = env::args().nth(1);
         let mut buf: Box<dyn BufRead> = match is_stdin.unwrap() {
             true => Box::new(BufReader::new(io::stdin())),
             false => Box::new(BufReader::new(fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap()))
         };
-        // let f = File::open(file).unwrap();
-        // let mut buf_len = fs::metadata(file)?.len();
-        // let mut buf_len = 32;
-        // let mut buf = BufReader::new(f);
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
 
@@ -295,8 +277,8 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             // Transforms this Read instance to an Iterator over its bytes.
             // The returned type implements Iterator where the Item is
             // Result<u8, R::Err>. The yielded item is Ok if a byte was
-            // successfully read and Err otherwise for I/O errors. EOF is mapped
-            // to returning None from this iterator.
+            // successfully read and Err otherwise for I/O errors. EOF is 
+            // mapped to returning None from this iterator.
             // (https://doc.rust-lang.org/1.16.0/std/io/trait.Read.html#method.bytes)
             let mut ascii_line: Line = Line::new();
             let mut offset_counter: u64 = 0x0;
@@ -336,7 +318,10 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// is_stdin
+/// Detect stdin, file path and/or parameters.
+/// # Arguments
+///
+/// * `matches` - argument matches.
 pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
     let mut is_stdin = false;
     if DBG > 0 { 
@@ -354,7 +339,6 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
                 }
             }
         }
-    // } else if matches.args.len() == 0 {
     } else if matches.args.is_empty() {
         is_stdin = true;
     } else if let Some(file) = matches.value_of(ARG_INP) {

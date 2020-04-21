@@ -50,7 +50,6 @@ fn main() {
                 .short("t")
                 .long(ARG_CLR)
                 .help("Set color tint terminal output. 0 to disable, 1 to enable")
-                // .default_value("1")
                 .possible_values(&["0", "1"])
                 .takes_value(true),
         )
@@ -79,15 +78,6 @@ fn main() {
                 .help("Set function wave output decimal places")
                 .takes_value(true),
         );
-
-    // disable 1 arg check for stdin
-    // let args: Vec<_> = env::args().collect();
-    // if args.len() == 1 {
-    //     app.clone().print_help().unwrap();
-    //     println!();
-    //     println!();
-    //     process::exit(0);
-    // }
 
     let matches = app.get_matches();
     match lib::run(matches) {
