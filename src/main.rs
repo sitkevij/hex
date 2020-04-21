@@ -1,6 +1,7 @@
 extern crate clap;
 mod lib;
 use clap::{App, Arg};
+use lib::{ARG_ARR, ARG_CLR, ARG_COL, ARG_FMT, ARG_FNC, ARG_INP, ARG_LEN, ARG_PLC};
 use std::env;
 use std::process;
 
@@ -10,89 +11,73 @@ fn main() {
         "{}\n{}",
         env!("CARGO_PKG_DESCRIPTION"),
         env!("CARGO_PKG_HOMEPAGE")
-    )
-    .to_string();
+    );
     let app = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .about(desc)
         .arg(
-            Arg::with_name("cols")
+            Arg::with_name(ARG_COL)
                 .short("c")
-                .long("cols")
+                .long(ARG_COL)
                 .value_name("columns")
                 .help("Set column length")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("len")
+            Arg::with_name(ARG_LEN)
                 .short("l")
-                .long("len")
-                .value_name("len")
+                .long(ARG_LEN)
+                .value_name(ARG_LEN)
                 .help("Set <len> bytes to read")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("format")
+            Arg::with_name(ARG_FMT)
                 .short("f")
-                .long("format")
+                .long(ARG_FMT)
                 .help("Set format of octet: Octal (o), LowerHex (x), UpperHex (X), Binary (b)")
                 .possible_values(&["o", "x", "X", "b"])
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("INPUTFILE")
+            Arg::with_name(ARG_INP)
                 .help("Pass file path as an argument for hex dump")
-                .required(true)
+                .required(false)
                 .index(1),
         )
         .arg(
-            Arg::with_name("v")
-                .short("v")
-                .multiple(true)
-                .help("Sets verbosity level"),
-        )
-        .arg(
-            Arg::with_name("color")
+            Arg::with_name(ARG_CLR)
                 .short("t")
-                .long("color")
+                .long(ARG_CLR)
                 .help("Set color tint terminal output. 0 to disable, 1 to enable")
-                .default_value("1")
                 .possible_values(&["0", "1"])
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("array")
+            Arg::with_name(ARG_ARR)
                 .short("a")
-                .long("array")
+                .long(ARG_ARR)
                 .value_name("array_format")
                 .help("Set source code format output: rust (r), C (c), golang (g)")
                 .possible_values(&["r", "c", "g"])
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("func")
+            Arg::with_name(ARG_FNC)
                 .short("u")
-                .long("func")
+                .long(ARG_FNC)
                 .value_name("func_length")
                 .help("Set function wave length")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("places")
+            Arg::with_name(ARG_PLC)
                 .short("p")
-                .long("places")
+                .long(ARG_PLC)
                 .value_name("func_places")
                 .help("Set function wave output decimal places")
                 .takes_value(true),
         );
-
-    let args: Vec<_> = env::args().collect();
-    if args.len() == 1 {
-        app.clone().print_help().unwrap();
-        println!();
-        println!();
-        process::exit(0);
-    }
 
     let matches = app.get_matches();
     match lib::run(matches) {
