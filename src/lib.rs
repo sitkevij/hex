@@ -230,13 +230,6 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         //  $ cat Cargo.toml | target/debug/hx -a r
         //  $ target/debug/hx Cargo.toml
         //  $ target/debug/hx Cargo.toml -a r
-        // -----
-        // let mut buf: Box<dyn BufRead> = match is_stdin.unwrap() {
-        //     true => Box::new(BufReader::new(io::stdin())),
-        //     false => Box::new(BufReader::new(
-        //         fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap(),
-        //     )),
-        // };
         let is_stdin = is_stdin(matches.clone());
         let mut buf: Box<dyn BufRead> = if is_stdin.unwrap() {
             Box::new(BufReader::new(io::stdin()))

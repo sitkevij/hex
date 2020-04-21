@@ -80,8 +80,6 @@ fn main() {
         );
 
     let matches = app.get_matches();
-    // app.print_long_help();
-    // app.clone().print_help();
     match lib::run(matches) {
         Ok(_) => {
             process::exit(0);
