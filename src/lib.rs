@@ -1,4 +1,5 @@
 #![deny(
+    dead_code,
     missing_docs,
     missing_debug_implementations,
     missing_copy_implementations,
@@ -18,9 +19,37 @@ extern crate clap;
 use clap::ArgMatches;
 use std::f64;
 use std::fs;
-use std::fs::File;
+// use std::fs::File;
 use std::io::BufReader;
-use std::io::Read;
+// use std::io::Read;
+// use std::io::{self, Read};
+use std::io::{self, BufRead, Read};
+use std::env;
+use std::error::Error;
+
+/// arg cols
+pub const ARG_COL: &str = "cols";
+/// arg len
+pub const ARG_LEN: &str = "len";
+/// arg format
+pub const ARG_FMT: &str = "format";
+/// arg INPUTFILE
+pub const ARG_INP: &str = "INPUTFILE";
+/// arg v
+// pub const ARG_VRB: &str = "v";
+/// arg color
+pub const ARG_CLR: &str = "color";
+/// arg array
+pub const ARG_ARR: &str = "array";
+/// arg func
+pub const ARG_FNC: &str = "func";
+/// arg places
+pub const ARG_PLC: &str = "places";
+
+const ARGS: [&str; 8] = [ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, 
+    ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC];
+
+const DBG: u8 = 0x0;
 
 /// nothing ⇒ Display
 /// ? ⇒ Debug
@@ -180,29 +209,9 @@ pub fn print_byte(b: u8, format: Format, colorize: bool) {
     }
 }
 
-/// Function wave out.
-/// # Arguments
-///
-/// * `len` - Wave length.
-/// * `places` - Number of decimal places for function wave floats.
-pub fn func_out(len: u64, places: usize) {
-    for y in 0..len {
-        let y_float: f64 = y as f64;
-        let len_float: f64 = len as f64;
-        let x: f64 = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
-        let formatted_number = format!("{:.*}", places, x);
-        print!("{}", formatted_number);
-        print!(",");
-        if (y % 10) == 9 {
-            println!();
-        }
-    }
-    println!();
-}
-
 /// In most hex editor applications, the data of the computer file is
-/// represented as hexadecimal values grouped in 4 groups of 4 bytes
-/// (or two groups of 8 bytes), followed by one group of 16 printable ASCII
+/// represented as hexadecimal values grouped in 4 groups of 4 bytes (or
+/// two groups of 8 bytes), followed by one group of 16 printable ASCII
 /// characters which correspond to each pair of hex values (each byte).
 /// Non-printable ASCII characters (e.g., Bell) and characters that would take
 /// more than one character space (e.g., tab) are typically represented by a
@@ -211,30 +220,52 @@ pub fn func_out(len: u64, places: usize) {
 /// # Arguments
 ///
 /// * `matches` - Argument matches from command line.
-pub fn run(matches: ArgMatches) -> Result<(), Box<dyn ::std::error::Error>> {
+pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
     let mut column_width: u64 = 10;
     if let Some(len) = matches.value_of("func") {
         let mut p: usize = 4;
         if let Some(places) = matches.value_of("places") {
             p = places.parse::<usize>().unwrap();
         }
-        func_out(len.parse::<u64>().unwrap(), p);
-    } else if let Some(file) = matches.value_of("INPUTFILE") {
-        let f = File::open(file).unwrap();
-        let mut buf_len = fs::metadata(file)?.len();
-        let mut buf = BufReader::new(f);
+        output_function(len.parse::<u64>().unwrap(), p);
+    // } else if let Some(_file) = matches.value_of("INPUTFILE") {
+    } else {
+        // cases:
+        //  $ cat Cargo.toml | target/debug/hx
+        //  $ cat Cargo.toml | target/debug/hx -a r
+        //  $ target/debug/hx Cargo.toml
+        //  $ target/debug/hx Cargo.toml -a r
+        // steps:
+        //  - match the possible args, to determine if input file in nth 1 arg
+        //  (index 2) position.
+        let is_stdin = is_stdin(matches.clone());
+
+        // let mut buf: Box<dyn BufRead> = match input {
+        //     None => Box::new(BufReader::new(io::stdin())),
+        //     // Some("-".to_string()) => Box::new(BufReader::new(io::stdin())),
+        //     Some(_file) => Box::new(BufReader::new(fs::File::open(_file).unwrap()))
+        // };
+        // let input = env::args().nth(1);
+        let mut buf: Box<dyn BufRead> = match is_stdin.unwrap() {
+            true => Box::new(BufReader::new(io::stdin())),
+            false => Box::new(BufReader::new(fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap()))
+        };
+        // let f = File::open(file).unwrap();
+        // let mut buf_len = fs::metadata(file)?.len();
+        // let mut buf_len = 32;
+        // let mut buf = BufReader::new(f);
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
 
-        if let Some(columns) = matches.value_of("cols") {
+        if let Some(columns) = matches.value_of(ARG_COL) {
             column_width = columns.parse::<u64>().unwrap(); //turbofish
         }
 
-        if let Some(length) = matches.value_of("len") {
-            buf_len = length.parse::<u64>().unwrap();
+        if let Some(_length) = matches.value_of(ARG_LEN) {
+            // buf_len = length.parse::<u64>().unwrap();
         }
 
-        if let Some(format) = matches.value_of("format") {
+        if let Some(format) = matches.value_of(ARG_FMT) {
             // o, x, X, p, b, e, E
             match format {
                 "o" => format_out = Format::Octal,
@@ -248,7 +279,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn ::std::error::Error>> {
             }
         }
 
-        if let Some(color) = matches.value_of("color") {
+        if let Some(color) = matches.value_of(ARG_CLR) {
             let color_v = color.parse::<u8>().unwrap();
             if color_v == 1 {
                 colorize = true;
@@ -257,43 +288,9 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn ::std::error::Error>> {
             }
         }
 
-        match matches.occurrences_of("v") {
-            0 => print!(""),
-            1 => println!("verbose 1"),
-            2 => println!("verbose 2"),
-            3 | _ => println!("verbose max"),
-        }
-
         // array output mode is mutually exclusive
-        if let Some(array) = matches.value_of("array") {
-            let array_format = array;
-            let page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
-            match array_format {
-                "r" => println!("let ARRAY: [u8; {}] = [", page.bytes),
-                "c" => println!("unsigned char ARRAY[{}] = {{", page.bytes),
-                "g" => println!("a := [{}]byte{{", page.bytes),
-                _ => println!("unknown array format"),
-            }
-
-            let mut i: u64 = 0x0;
-            for line in page.body.iter() {
-                print!("    ");
-                for hex in line.hex_body.iter() {
-                    i += 1;
-                    if i == buf_len && array_format != "g" {
-                        print!("{}", hex_lower_hex(*hex));
-                    } else {
-                        print!("{}, ", hex_lower_hex(*hex));
-                    }
-                }
-                println!();
-            }
-            match array_format {
-                "r" => println!("];"),
-                "c" => println!("}};"),
-                "g" => println!("}}"),
-                _ => println!("unknown array format"),
-            }
+        if let Some(array) = matches.value_of(ARG_ARR) {
+            output_array(array, buf, column_width);
         } else {
             // Transforms this Read instance to an Iterator over its bytes.
             // The returned type implements Iterator where the Item is
@@ -304,7 +301,8 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn ::std::error::Error>> {
             let mut ascii_line: Line = Line::new();
             let mut offset_counter: u64 = 0x0;
             let mut byte_column: u64 = 0x0;
-            let page = buf_to_array(&mut buf, buf_len, column_width).unwrap();
+            let page = buf_to_array(&mut buf, column_width).unwrap();
+
             for line in page.body.iter() {
                 print_offset(offset_counter);
 
@@ -338,6 +336,90 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn ::std::error::Error>> {
     Ok(())
 }
 
+/// is_stdin
+pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
+    let mut is_stdin = false;
+    if DBG > 0 { 
+        dbg!(env::args().len(), matches.args.len());
+        dbg!(env::args().nth(0).unwrap());
+    }
+    if let Some(nth1) = env::args().nth(1) {
+        if DBG > 0 { dbg!(nth1); }
+        for arg in ARGS.iter() {
+            if let Some(index) = matches.index_of(arg) {
+                if DBG > 0 { dbg!("matches.index_of(arg) {0} {1}", arg, index); }
+                match index {
+                    2 => is_stdin = true,
+                    _ => println!("arg index {}", index),
+                }
+            }
+        }
+    // } else if matches.args.len() == 0 {
+    } else if matches.args.is_empty() {
+        is_stdin = true;
+    } else if let Some(file) = matches.value_of(ARG_INP) {
+        if DBG > 0 { dbg!(file); }
+        is_stdin = false;
+    }
+    if DBG > 0 { dbg!(is_stdin); }
+    Ok(is_stdin)
+}
+
+/// Output source code array format.
+/// # Arguments
+///
+/// * `array_format` - array format, rust (r), C (c), golang (g).
+/// * `buf` - BufRead.
+/// * `column_width` - column width.
+pub fn output_array(array_format: &str, mut buf: Box<dyn BufRead>, column_width: u64) {
+    let page = buf_to_array(&mut buf, column_width).unwrap();
+    match array_format {
+        "r" => println!("let ARRAY: [u8; {}] = [", page.bytes),
+        "c" => println!("unsigned char ARRAY[{}] = {{", page.bytes),
+        "g" => println!("a := [{}]byte{{", page.bytes),
+        _ => println!("unknown array format"),
+    }
+    let mut i:u64 = 0x0;
+    for line in page.body.iter() {
+        print!("    ");
+        for hex in line.hex_body.iter() {
+            i += 1;
+            if i == page.bytes && array_format != "g" {
+                print!("{}", hex_lower_hex(*hex));
+            } else {
+                print!("{}, ", hex_lower_hex(*hex));
+            }
+        }
+        println!();
+    }
+    match array_format {
+        "r" => println!("];"),
+        "c" => println!("}};"),
+        "g" => println!("}}"),
+        _ => println!("unknown array format"),
+    }
+}
+
+/// Function wave out.
+/// # Arguments
+///
+/// * `len` - Wave length.
+/// * `places` - Number of decimal places for function wave floats.
+pub fn output_function(len: u64, places: usize) {
+    for y in 0..len {
+        let y_float: f64 = y as f64;
+        let len_float: f64 = len as f64;
+        let x: f64 = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
+        let formatted_number = format!("{:.*}", places, x);
+        print!("{}", formatted_number);
+        print!(",");
+        if (y % 10) == 9 {
+            println!();
+        }
+    }
+    println!();
+}
+
 /// Buffer to array.
 ///
 /// # Arguments
@@ -347,11 +429,11 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn ::std::error::Error>> {
 /// * `column_width` - column width for output.
 pub fn buf_to_array(
     buf: &mut dyn Read,
-    buf_len: u64,
+    // buf_len: u64,
     column_width: u64,
 ) -> Result<Page, Box<dyn ::std::error::Error>> {
     let mut column_count: u64 = 0x0;
-    let max_array_size: u16 = <u16>::max_value(); // 2^16;
+    // let max_array_size: u16 = <u16>::max_value(); // 2^16;
     let mut page: Page = Page::new();
     let mut line: Line = Line::new();
     for b in buf.bytes() {
@@ -366,11 +448,13 @@ pub fn buf_to_array(
             line = Line::new();
             column_count = 0;
         }
-        if page.bytes == buf_len || u64::from(max_array_size) == buf_len {
-            page.body.push(line);
-            break;
-        }
+
+        // if page.bytes == buf_len || u64::from(max_array_size) == buf_len {
+        //     page.body.push(line);
+        //     break;
+        // }
     }
+    page.body.push(line);
     Ok(page)
 }
 
