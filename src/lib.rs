@@ -16,12 +16,12 @@ extern crate ansi_term;
 extern crate clap;
 
 use clap::ArgMatches;
+use std::env;
+use std::error::Error;
 use std::f64;
 use std::fs;
 use std::io::BufReader;
 use std::io::{self, BufRead, Read};
-use std::env;
-use std::error::Error;
 
 /// arg cols
 pub const ARG_COL: &str = "cols";
@@ -40,8 +40,9 @@ pub const ARG_FNC: &str = "func";
 /// arg places
 pub const ARG_PLC: &str = "places";
 
-const ARGS: [&str; 8] = [ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, 
-    ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC];
+const ARGS: [&str; 8] = [
+    ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC,
+];
 
 const DBG: u8 = 0x0;
 
@@ -228,13 +229,12 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         //  $ cat Cargo.toml | target/debug/hx -a r
         //  $ target/debug/hx Cargo.toml
         //  $ target/debug/hx Cargo.toml -a r
-        // steps:
-        //  - match the possible args, to determine if input file in nth 1 arg
-        //  (index 2) position.
         let is_stdin = is_stdin(matches.clone());
         let mut buf: Box<dyn BufRead> = match is_stdin.unwrap() {
             true => Box::new(BufReader::new(io::stdin())),
-            false => Box::new(BufReader::new(fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap()))
+            false => Box::new(BufReader::new(
+                fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap(),
+            )),
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
@@ -277,7 +277,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             // Transforms this Read instance to an Iterator over its bytes.
             // The returned type implements Iterator where the Item is
             // Result<u8, R::Err>. The yielded item is Ok if a byte was
-            // successfully read and Err otherwise for I/O errors. EOF is 
+            // successfully read and Err otherwise for I/O errors. EOF is
             // mapped to returning None from this iterator.
             // (https://doc.rust-lang.org/1.16.0/std/io/trait.Read.html#method.bytes)
             let mut ascii_line: Line = Line::new();
@@ -324,15 +324,19 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 /// * `matches` - argument matches.
 pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
     let mut is_stdin = false;
-    if DBG > 0 { 
+    if DBG > 0 {
         dbg!(env::args().len(), matches.args.len());
         dbg!(env::args().nth(0).unwrap());
     }
     if let Some(nth1) = env::args().nth(1) {
-        if DBG > 0 { dbg!(nth1); }
+        if DBG > 0 {
+            dbg!(nth1);
+        }
         for arg in ARGS.iter() {
             if let Some(index) = matches.index_of(arg) {
-                if DBG > 0 { dbg!("matches.index_of(arg) {0} {1}", arg, index); }
+                if DBG > 0 {
+                    dbg!("matches.index_of(arg) {0} {1}", arg, index);
+                }
                 match index {
                     2 => is_stdin = true,
                     _ => println!("arg index {}", index),
@@ -342,10 +346,14 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
     } else if matches.args.is_empty() {
         is_stdin = true;
     } else if let Some(file) = matches.value_of(ARG_INP) {
-        if DBG > 0 { dbg!(file); }
+        if DBG > 0 {
+            dbg!(file);
+        }
         is_stdin = false;
     }
-    if DBG > 0 { dbg!(is_stdin); }
+    if DBG > 0 {
+        dbg!(is_stdin);
+    }
     Ok(is_stdin)
 }
 
@@ -363,7 +371,7 @@ pub fn output_array(array_format: &str, mut buf: Box<dyn BufRead>, column_width:
         "g" => println!("a := [{}]byte{{", page.bytes),
         _ => println!("unknown array format"),
     }
-    let mut i:u64 = 0x0;
+    let mut i: u64 = 0x0;
     for line in page.body.iter() {
         print!("    ");
         for hex in line.hex_body.iter() {
