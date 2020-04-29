@@ -4,7 +4,7 @@ Futuristic take on hexdump.
 
 `hex` accepts a file path as input and outputs a hexadecimal colorized view to stdout.
 
-```
+```sh
 $ hx tests/files/alphanumeric.txt
 0x000000: 0x61 0x62 0x63 0x64 0x65 0x66 0x67 0x68 0x69 0x6a abcdefghij
 0x00000a: 0x6b 0x69 0x6c 0x6d 0x6e 0x6f 0x70 0x71 0x72 0x73 kilmnopqrs
@@ -17,7 +17,8 @@ $ hx tests/files/alphanumeric.txt
 ```
 
 `hex` also accepts stdin as input.
-```
+
+```sh
 cat "tests/files/alphanumeric.txt" | hx
 0x000000: 0x61 0x62 0x63 0x64 0x65 0x66 0x67 0x68 0x69 0x6a abcdefghij
 0x00000a: 0x6b 0x69 0x6c 0x6d 0x6e 0x6f 0x70 0x71 0x72 0x73 kilmnopqrs
@@ -37,6 +38,7 @@ cat "tests/files/alphanumeric.txt" | hx
 
 * [install](#install)
 * [features](#features)
+* [manual](#manual)
 * [license](#license)
 
 ## examples
@@ -64,29 +66,32 @@ cat "tests/files/alphanumeric.txt" | hx
 ### crates.io install
 
 If `cargo` is already installed, simply:
-```
-cargo install hx 
+
+```sh
+cargo install hx
 ```
 
 ### source install
 
 From within the `hx` source code directory, simply execute:
-```
+
+```sh
 make install
 ```
 
 This will run the following `cargo` commands:
-```
+
+```sh
 cargo build --release
 cargo test --verbose --all -- --nocapture
-cargo install --path . 
+cargo install --path .
 ```
 
 Which will compile the release version, run tests and install release binary to `<USERDIR>/.cargo/bin/hx`.
 
 If `<USERDIR>/.cargo/bin` is part of the `PATH` evironment variable, `hx` should be able to be executed anywhere in the shell.
 
-## features 
+## features
 
 ### output arrays in `rust`, `c` or `golang`
 
@@ -96,7 +101,7 @@ For example:
 
 #### rust array: -ar
 
-```
+```sh
 $ hx -ar -c8 tests/files/tiny.txt
 let ARRAY: [u8; 3] = [
     0x69, 0x6c, 0x0a
@@ -105,7 +110,7 @@ let ARRAY: [u8; 3] = [
 
 #### c array: -ac
 
-```
+```sh
 $ hx -ac -c8 tests/files/tiny.txt
 unsigned char ARRAY[3] = {
     0x69, 0x6c, 0x0a
@@ -114,11 +119,39 @@ unsigned char ARRAY[3] = {
 
 #### golang array: -ag
 
-```
+```sh
 $ hx -ag -c8 tests/files/tiny.txt
 a := [3]byte{
     0x69, 0x6c, 0x0a,
 }
+```
+
+## manual
+
+```txt
+hx
+Futuristic take on hexdump, made in Rust.
+
+USAGE:
+    hx [OPTIONS] [INPUTFILE]
+    <stdout> | hx [OPTIONS]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -a, --array <array_format>    Set source code format output: rust (r), C (c), golang (g) [possible values: r, c, g]
+    -t, --color <color>           Set color tint terminal output. 0 to disable, 1 to enable [possible values: 0, 1]
+    -c, --cols <columns>          Set column length
+    -f, --format <format>         Set format of octet: Octal (o), LowerHex (x), UpperHex (X), Binary (b) [possible
+                                  values: o, x, X, b]
+    -u, --func <func_length>      Set function wave length
+    -l, --len <len>               Set <len> bytes to read
+    -p, --places <func_places>    Set function wave output decimal places
+
+ARGS:
+    <INPUTFILE>    Pass file path as an argument for hex dump
 ```
 
 ## license
