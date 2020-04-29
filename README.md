@@ -134,7 +134,7 @@ Futuristic take on hexdump, made in Rust.
 
 USAGE:
     hx [OPTIONS] [INPUTFILE]
-    <stdin> | hx [OPTIONS]
+    <stdout> | hx [OPTIONS]
 
 FLAGS:
     -h, --help       Prints help information
