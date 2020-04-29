@@ -43,4 +43,5 @@ after_success:
         bash <(curl -s https://codecov.io/bash) &&
         echo "Uploaded code coverage"
         docker build -t sitkevij/stretch-slim:hex-latest .
+        cargo install hx
       fi
