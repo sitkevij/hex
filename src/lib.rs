@@ -330,7 +330,9 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
         dbg!(env::args().len(), matches.args.len());
         dbg!(env::args().nth(0).unwrap());
     }
-    if let Some(nth1) = env::args().nth(1) {
+    if matches.args.len() == 2 {
+        is_stdin = false;
+    } else if let Some(nth1) = env::args().nth(1) {
         if DBG > 0 {
             dbg!(nth1);
         }
