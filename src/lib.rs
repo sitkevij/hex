@@ -234,9 +234,9 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         let mut buf: Box<dyn BufRead> = if is_stdin.unwrap() {
             Box::new(BufReader::new(io::stdin()))
         } else {
-            Box::new(BufReader::new(
-                fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap(),
-            ))
+            Box::new(BufReader::new(fs::File::open(
+                matches.value_of(ARG_INP).unwrap(),
+            )?))
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
@@ -285,7 +285,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             let mut ascii_line: Line = Line::new();
             let mut offset_counter: u64 = 0x0;
             let mut byte_column: u64 = 0x0;
-            let page = buf_to_array(&mut buf, truncate_len, column_width).unwrap();
+            let page = buf_to_array(&mut buf, truncate_len, column_width)?;
 
             for line in page.body.iter() {
                 print_offset(offset_counter);
@@ -433,7 +433,7 @@ pub fn buf_to_array(
     let mut page: Page = Page::new();
     let mut line: Line = Line::new();
     for b in buf.bytes() {
-        let b1: u8 = b.unwrap();
+        let b1: u8 = b?;
         line.bytes += 1;
         page.bytes += 1;
         line.hex_body.push(b1);
