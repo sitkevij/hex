@@ -246,7 +246,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         }
 
         if let Some(length) = matches.value_of(ARG_LEN) {
-            truncate_len = length.parse::<u64>().unwrap();
+            truncate_len = length.parse::<u64>()?;
         }
 
         if let Some(format) = matches.value_of(ARG_FMT) {
@@ -330,24 +330,18 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
         dbg!(env::args().len(), matches.args.len());
         dbg!(env::args().nth(0).unwrap());
     }
-    if let Some(nth1) = env::args().nth(1) {
-        if DBG > 0 {
-            dbg!(nth1);
-        }
-        for arg in ARGS.iter() {
-            if let Some(index) = matches.index_of(arg) {
-                if let 2 = index {
-                    is_stdin = true;
-                }
-            }
-        }
-    } else if matches.args.is_empty() {
-        is_stdin = true;
-    } else if let Some(file) = matches.value_of(ARG_INP) {
+    if let Some(file) = matches.value_of(ARG_INP) {
         if DBG > 0 {
             dbg!(file);
         }
         is_stdin = false;
+    } else if let Some(nth1) = env::args().nth(1) {
+        if DBG > 0 {
+            dbg!(nth1);
+        }
+        is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
+    } else if matches.args.is_empty() {
+        is_stdin = true;
     }
     if DBG > 0 {
         dbg!(is_stdin);
