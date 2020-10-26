@@ -321,7 +321,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                 byte_column = 0x0;
                 let ascii_string: String = ascii_line.ascii.iter().cloned().collect();
                 ascii_line = Line::new();
-                write!(locked, "{}\n", ascii_string)?; // print ascii string
+                writeln!(locked, "{}", ascii_string)?; // print ascii string
             }
             if true {
                 writeln!(locked, "   bytes: {}", page.bytes)?;
@@ -394,7 +394,7 @@ pub fn output_array(
                 write!(locked, "{}, ", hex_lower_hex(*hex))?;
             }
         }
-        writeln!(locked, "")?;
+        writeln!(locked)?;
     }
 
     writeln!(
