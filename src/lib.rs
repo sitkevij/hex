@@ -509,7 +509,6 @@ mod tests {
         assert_eq!(hex_binary(b), format!("{:#010b}", b));
     }
     use assert_cmd::Command;
-    // use predicates::prelude::*;
 
     /// target/debug/hx -ar tests/files/tiny.txt
     #[test]
