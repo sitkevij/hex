@@ -4,6 +4,8 @@
 target/debug/hx -ar tests/files/tiny.txt
 # param ordering 2
 target/debug/hx tests/files/tiny.txt -ar
+# binary output column width 4
+target/debug/hx -c4 -fb tests/files/alphanumeric.txt
 # missing len param
 target/debug/hx --len tests/files/tiny.txt
 # missing file name

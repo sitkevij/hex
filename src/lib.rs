@@ -508,4 +508,60 @@ mod tests {
         assert_eq!(hex_binary(b), "0b11111111");
         assert_eq!(hex_binary(b), format!("{:#010b}", b));
     }
+    use assert_cmd::Command;
+    // use predicates::prelude::*;
+
+    /// target/debug/hx -ar tests/files/tiny.txt
+    #[test]
+    fn test_cli_arg_order_1() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("-ar").arg("tests/files/tiny.txt").assert();
+        assert
+            .success()
+            .code(0)
+            .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
+    }
+
+    /// target/debug/hx tests/files/tiny.txt -ar
+    #[test]
+    fn test_cli_arg_order_2() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("tests/files/tiny.txt").arg("-ar").assert();
+        assert
+            .success()
+            .code(0)
+            .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
+    }
+
+    /// target/debug/hx --len tests/files/tiny.txt
+    ///     error: invalid digit found in string
+    #[test]
+    fn test_cli_missing_param_value() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("--len").arg("tests/files/tiny.txt").assert();
+        assert.failure().code(1);
+    }
+
+    #[test]
+    fn test_cli_input_missing_file() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("missing-file").assert();
+        assert.failure().code(1);
+    }
+
+    #[test]
+    fn test_cli_input_directory() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("src").assert();
+        assert.failure().code(1);
+    }
+
+    #[test]
+    fn test_cli_input_stdin() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("-t0").write_stdin("012").assert();
+        assert.success().code(0).stdout(
+            "0x000000: 0x30 0x31 0x32                                    012\n   bytes: 3\n",
+        );
+    }
 }
