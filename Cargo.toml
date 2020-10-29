@@ -7,7 +7,7 @@ repository = "https://github.com/sitkevij/hex"
 keywords = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
 license = "MIT"
 name = "hx"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2018"
 
 # see https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -30,3 +30,6 @@ opt-level = 3
 [dependencies]
 clap = "2.31.1"
 ansi_term = "0.11"
+
+[dev-dependencies]
+assert_cmd = "1.0.1"

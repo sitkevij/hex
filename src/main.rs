@@ -85,7 +85,11 @@ fn main() {
             process::exit(0);
         }
         Err(e) => {
-            eprintln!("error = \"{}\"", e);
+            eprintln!(
+                "{} {}",
+                ansi_term::Colour::Fixed(9).bold().paint("error:"),
+                e
+            );
             process::exit(1);
         }
     }

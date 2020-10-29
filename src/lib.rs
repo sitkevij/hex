@@ -21,7 +21,7 @@ use std::error::Error;
 use std::f64;
 use std::fs;
 use std::io::BufReader;
-use std::io::{self, BufRead, Read};
+use std::io::{self, BufRead, Read, Write};
 
 /// arg cols
 pub const ARG_COL: &str = "cols";
@@ -134,8 +134,8 @@ pub fn offset(b: u64) -> String {
 }
 
 /// print offset to std out
-pub fn print_offset(b: u64) {
-    print!("{}: ", offset(b));
+pub fn print_offset(w: &mut impl Write, b: u64) -> io::Result<()> {
+    write!(w, "{}: ", offset(b))
 }
 
 /// hex octal, takes u8
@@ -159,7 +159,7 @@ pub fn hex_binary(b: u8) -> String {
 }
 
 /// print byte to std out
-pub fn print_byte(b: u8, format: Format, colorize: bool) {
+pub fn print_byte(w: &mut impl Write, b: u8, format: Format, colorize: bool) -> io::Result<()> {
     let mut color: u8 = b;
     if color < 1 {
         color = 0x16;
@@ -167,39 +167,43 @@ pub fn print_byte(b: u8, format: Format, colorize: bool) {
     if colorize {
         // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
         match format {
-            Format::Octal => print!(
+            Format::Octal => write!(
+                w,
                 "{} ",
                 ansi_term::Style::new()
                     .fg(ansi_term::Color::Fixed(color))
                     .paint(hex_octal(b))
             ),
-            Format::LowerHex => print!(
+            Format::LowerHex => write!(
+                w,
                 "{} ",
                 ansi_term::Style::new()
                     .fg(ansi_term::Color::Fixed(color))
                     .paint(hex_lower_hex(b))
             ),
-            Format::UpperHex => print!(
+            Format::UpperHex => write!(
+                w,
                 "{} ",
                 ansi_term::Style::new()
                     .fg(ansi_term::Color::Fixed(color))
                     .paint(hex_upper_hex(b))
             ),
-            Format::Binary => print!(
+            Format::Binary => write!(
+                w,
                 "{} ",
                 ansi_term::Style::new()
                     .fg(ansi_term::Color::Fixed(color))
                     .paint(hex_binary(b))
             ),
-            _ => print!("unk_fmt "),
+            _ => write!(w, "unk_fmt "),
         }
     } else {
         match format {
-            Format::Octal => print!("{} ", hex_octal(b)),
-            Format::LowerHex => print!("{} ", hex_lower_hex(b)),
-            Format::UpperHex => print!("{} ", hex_upper_hex(b)),
-            Format::Binary => print!("{} ", hex_binary(b)),
-            _ => print!("unk_fmt "),
+            Format::Octal => write!(w, "{} ", hex_octal(b)),
+            Format::LowerHex => write!(w, "{} ", hex_lower_hex(b)),
+            Format::UpperHex => write!(w, "{} ", hex_upper_hex(b)),
+            Format::Binary => write!(w, "{} ", hex_binary(b)),
+            _ => write!(w, "unk_fmt "),
         }
     }
 }
@@ -234,9 +238,9 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         let mut buf: Box<dyn BufRead> = if is_stdin.unwrap() {
             Box::new(BufReader::new(io::stdin()))
         } else {
-            Box::new(BufReader::new(
-                fs::File::open(matches.value_of(ARG_INP).unwrap()).unwrap(),
-            ))
+            Box::new(BufReader::new(fs::File::open(
+                matches.value_of(ARG_INP).unwrap(),
+            )?))
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
@@ -246,7 +250,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         }
 
         if let Some(length) = matches.value_of(ARG_LEN) {
-            truncate_len = length.parse::<u64>().unwrap();
+            truncate_len = length.parse::<u64>()?;
         }
 
         if let Some(format) = matches.value_of(ARG_FMT) {
@@ -274,7 +278,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 
         // array output mode is mutually exclusive
         if let Some(array) = matches.value_of(ARG_ARR) {
-            output_array(array, buf, truncate_len, column_width);
+            output_array(array, buf, truncate_len, column_width)?;
         } else {
             // Transforms this Read instance to an Iterator over its bytes.
             // The returned type implements Iterator where the Item is
@@ -285,15 +289,18 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             let mut ascii_line: Line = Line::new();
             let mut offset_counter: u64 = 0x0;
             let mut byte_column: u64 = 0x0;
-            let page = buf_to_array(&mut buf, truncate_len, column_width).unwrap();
+            let page = buf_to_array(&mut buf, truncate_len, column_width)?;
+
+            let stdout = io::stdout();
+            let mut locked = stdout.lock();
 
             for line in page.body.iter() {
-                print_offset(offset_counter);
+                print_offset(&mut locked, offset_counter)?;
 
                 for hex in line.hex_body.iter() {
                     offset_counter += 1;
                     byte_column += 1;
-                    print_byte(*hex, format_out, colorize);
+                    print_byte(&mut locked, *hex, format_out, colorize)?;
 
                     if *hex > 31 && *hex < 127 {
                         ascii_line.ascii.push(*hex as char);
@@ -303,17 +310,21 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                 }
 
                 if byte_column < column_width {
-                    print!("{:<1$}", "", 5 * (column_width - byte_column) as usize);
+                    write!(
+                        locked,
+                        "{:<1$}",
+                        "",
+                        5 * (column_width - byte_column) as usize
+                    )?;
                 }
 
                 byte_column = 0x0;
                 let ascii_string: String = ascii_line.ascii.iter().cloned().collect();
                 ascii_line = Line::new();
-                print!("{}", ascii_string); // print ascii string
-                println!();
+                writeln!(locked, "{}", ascii_string)?; // print ascii string
             }
             if true {
-                println!("   bytes: {}", page.bytes);
+                writeln!(locked, "   bytes: {}", page.bytes)?;
             }
         }
     }
@@ -330,24 +341,18 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
         dbg!(env::args().len(), matches.args.len());
         dbg!(env::args().nth(0).unwrap());
     }
-    if let Some(nth1) = env::args().nth(1) {
-        if DBG > 0 {
-            dbg!(nth1);
-        }
-        for arg in ARGS.iter() {
-            if let Some(index) = matches.index_of(arg) {
-                if let 2 = index {
-                    is_stdin = true;
-                }
-            }
-        }
-    } else if matches.args.is_empty() {
-        is_stdin = true;
-    } else if let Some(file) = matches.value_of(ARG_INP) {
+    if let Some(file) = matches.value_of(ARG_INP) {
         if DBG > 0 {
             dbg!(file);
         }
         is_stdin = false;
+    } else if let Some(nth1) = env::args().nth(1) {
+        if DBG > 0 {
+            dbg!(nth1);
+        }
+        is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
+    } else if matches.args.is_empty() {
+        is_stdin = true;
     }
     if DBG > 0 {
         dbg!(is_stdin);
@@ -367,33 +372,41 @@ pub fn output_array(
     mut buf: Box<dyn BufRead>,
     truncate_len: u64,
     column_width: u64,
-) {
+) -> io::Result<()> {
+    let stdout = io::stdout();
+    let mut locked = stdout.lock();
+
     let page = buf_to_array(&mut buf, truncate_len, column_width).unwrap();
     match array_format {
-        "r" => println!("let ARRAY: [u8; {}] = [", page.bytes),
-        "c" => println!("unsigned char ARRAY[{}] = {{", page.bytes),
-        "g" => println!("a := [{}]byte{{", page.bytes),
-        _ => println!("unknown array format"),
+        "r" => writeln!(locked, "let ARRAY: [u8; {}] = [", page.bytes)?,
+        "c" => writeln!(locked, "unsigned char ARRAY[{}] = {{", page.bytes)?,
+        "g" => writeln!(locked, "a := [{}]byte{{", page.bytes)?,
+        _ => writeln!(locked, "unknown array format")?,
     }
     let mut i: u64 = 0x0;
     for line in page.body.iter() {
-        print!("    ");
+        write!(locked, "    ")?;
         for hex in line.hex_body.iter() {
             i += 1;
             if i == page.bytes && array_format != "g" {
-                print!("{}", hex_lower_hex(*hex));
+                write!(locked, "{}", hex_lower_hex(*hex))?;
             } else {
-                print!("{}, ", hex_lower_hex(*hex));
+                write!(locked, "{}, ", hex_lower_hex(*hex))?;
             }
         }
-        println!();
+        writeln!(locked)?;
     }
-    match array_format {
-        "r" => println!("];"),
-        "c" => println!("}};"),
-        "g" => println!("}}"),
-        _ => println!("unknown array format"),
-    }
+
+    writeln!(
+        locked,
+        "{}",
+        match array_format {
+            "r" => "];",
+            "c" => "};",
+            "g" => "}",
+            _ => "unknown array format",
+        }
+    )
 }
 
 /// Function wave out.
@@ -433,7 +446,7 @@ pub fn buf_to_array(
     let mut page: Page = Page::new();
     let mut line: Line = Line::new();
     for b in buf.bytes() {
-        let b1: u8 = b.unwrap();
+        let b1: u8 = b?;
         line.bytes += 1;
         page.bytes += 1;
         line.hex_body.push(b1);
@@ -494,5 +507,60 @@ mod tests {
         let b: u8 = <u8>::max_value();
         assert_eq!(hex_binary(b), "0b11111111");
         assert_eq!(hex_binary(b), format!("{:#010b}", b));
+    }
+    use assert_cmd::Command;
+
+    /// target/debug/hx -ar tests/files/tiny.txt
+    #[test]
+    fn test_cli_arg_order_1() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("-ar").arg("tests/files/tiny.txt").assert();
+        assert
+            .success()
+            .code(0)
+            .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
+    }
+
+    /// target/debug/hx tests/files/tiny.txt -ar
+    #[test]
+    fn test_cli_arg_order_2() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("tests/files/tiny.txt").arg("-ar").assert();
+        assert
+            .success()
+            .code(0)
+            .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
+    }
+
+    /// target/debug/hx --len tests/files/tiny.txt
+    ///     error: invalid digit found in string
+    #[test]
+    fn test_cli_missing_param_value() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("--len").arg("tests/files/tiny.txt").assert();
+        assert.failure().code(1);
+    }
+
+    #[test]
+    fn test_cli_input_missing_file() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("missing-file").assert();
+        assert.failure().code(1);
+    }
+
+    #[test]
+    fn test_cli_input_directory() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("src").assert();
+        assert.failure().code(1);
+    }
+
+    #[test]
+    fn test_cli_input_stdin() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("-t0").write_stdin("012").assert();
+        assert.success().code(0).stdout(
+            "0x000000: 0x30 0x31 0x32                                    012\n   bytes: 3\n",
+        );
     }
 }
