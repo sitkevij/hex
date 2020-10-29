@@ -89,7 +89,7 @@ cargo install --path .
 
 Which will compile the release version, run tests and install release binary to `<USERDIR>/.cargo/bin/hx`.
 
-If `<USERDIR>/.cargo/bin` is part of the `PATH` evironment variable, `hx` should be able to be executed anywhere in the shell.
+If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` should be able to be executed anywhere in the shell.
 
 ## features
 
