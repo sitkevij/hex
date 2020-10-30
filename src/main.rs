@@ -58,8 +58,8 @@ fn main() {
                 .short("a")
                 .long(ARG_ARR)
                 .value_name("array_format")
-                .help("Set source code format output: rust (r), C (c), golang (g)")
-                .possible_values(&["r", "c", "g"])
+                .help("Set source code format output: rust (r), C (c), golang (g), python (p)")
+                .possible_values(&["r", "c", "g", "p"])
                 .takes_value(true),
         )
         .arg(
