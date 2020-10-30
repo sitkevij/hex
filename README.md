@@ -95,7 +95,7 @@ If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` shoul
 
 ### output arrays in `rust`, `c` or `golang`
 
-`hx` has a feature which can output the input file bytes as source code arrays. 
+`hx` has a feature which can output the input file bytes as source code arrays.
 
 For example:
 
@@ -124,6 +124,15 @@ $ hx -ag -c8 tests/files/tiny.txt
 a := [3]byte{
     0x69, 0x6c, 0x0a,
 }
+```
+
+#### python array: -ap
+
+```sh
+$ hx -ap -c8 tests/files/tiny.txt
+a = [
+    0x69, 0x6c, 0x0a
+]
 ```
 
 ## manual
