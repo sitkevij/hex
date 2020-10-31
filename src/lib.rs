@@ -382,6 +382,8 @@ pub fn output_array(
         "c" => writeln!(locked, "unsigned char ARRAY[{}] = {{", page.bytes)?,
         "g" => writeln!(locked, "a := [{}]byte{{", page.bytes)?,
         "p" => writeln!(locked, "a = [")?,
+        "k" => writeln!(locked, "val a = byteArrayOf(")?,
+        "j" => writeln!(locked, "byte[] a = new byte[]{{")?,
         _ => writeln!(locked, "unknown array format")?,
     }
     let mut i: u64 = 0x0;
@@ -403,9 +405,10 @@ pub fn output_array(
         "{}",
         match array_format {
             "r" => "];",
-            "c" => "};",
+            "c" | "j" => "};",
             "g" => "}",
             "p" => "]",
+            "k" => ")",
             _ => "unknown array format",
         }
     )

@@ -135,6 +135,24 @@ a = [
 ]
 ```
 
+#### kotlin array: -ak
+
+```sh
+$ hx -ak -c8 tests/files/tiny.txt
+val a = byteArrayOf(
+    0x69, 0x6c, 0x0a
+)
+```
+
+#### java array: -aj
+
+```sh
+$ hx -aj -c8 tests/files/tiny.txt
+byte[] a = new byte[]{
+    0x69, 0x6c, 0x0a
+};
+```
+
 ## manual
 
 ```txt
@@ -150,7 +168,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -a, --array <array_format>    Set source code format output: rust (r), C (c), golang (g), python (p) [possible values: r, c, g, p]
+    -a, --array <array_format>    Set source code format output: rust (r), C (c), golang (g), python (p), kotlin (k), java (j) [possible values: r, c, g, p, k, j]
     -t, --color <color>           Set color tint terminal output. 0 to disable, 1 to enable [possible values: 0, 1]
     -c, --cols <columns>          Set column length
     -f, --format <format>         Set format of octet: Octal (o), LowerHex (x), UpperHex (X), Binary (b) [possible
