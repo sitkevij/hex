@@ -1,13 +1,13 @@
 [package]
 authors = ["sitkevij"]
-categories = ["command-line-utilities","debugging"]
+categories = ["command-line-utilities","development-tools"]
 description = "Futuristic take on hexdump, made in Rust."
 include = ["src/**/*","Cargo.toml","Cargo.lock"]
 repository = "https://github.com/sitkevij/hex"
 keywords = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
 license = "MIT"
 name = "hx"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2018"
 
 # see https://doc.rust-lang.org/cargo/reference/manifest.html
