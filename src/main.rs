@@ -3,6 +3,8 @@ mod lib;
 use clap::{App, Arg};
 use lib::{ARG_ARR, ARG_CLR, ARG_COL, ARG_FMT, ARG_FNC, ARG_INP, ARG_LEN, ARG_PLC};
 use std::env;
+use std::io::Error;
+use std::io::ErrorKind;
 use std::process;
 
 /// Central application entry point.
@@ -84,13 +86,20 @@ fn main() {
         Ok(_) => {
             process::exit(0);
         }
-        Err(e) => {
-            eprintln!(
-                "{} {}",
-                ansi_term::Colour::Fixed(9).bold().paint("error:"),
-                e
-            );
-            process::exit(1);
+        Err(_) => {
+            let err = &Error::last_os_error();
+            let suppress_error = match err.kind() {
+                ErrorKind::BrokenPipe => process::exit(0),
+                _ => false,
+            };
+            if suppress_error == false {
+                eprintln!(
+                    "{} {}",
+                    ansi_term::Colour::Fixed(9).bold().paint("error:"),
+                    err
+                );
+                process::exit(1);
+            }
         }
     }
 }

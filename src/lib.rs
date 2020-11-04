@@ -513,6 +513,15 @@ mod tests {
         assert_eq!(hex_binary(b), "0b11111111");
         assert_eq!(hex_binary(b), format!("{:#010b}", b));
     }
+
+    #[test]
+    fn test_line_struct() {
+        let mut ascii_line: Line = Line::new();
+        ascii_line.ascii.push('.');
+        assert_eq!(ascii_line.ascii[0], '.');
+        assert_eq!(ascii_line.offset, 0x0);
+    }
+
     use assert_cmd::Command;
 
     /// target/debug/hx -ar tests/files/tiny.txt
