@@ -17,6 +17,7 @@ fmt:
 	cargo fmt --verbose
 
 debug:
+	export RUSTFLAGS=""
 	cargo build
 
 release: test
@@ -24,6 +25,21 @@ release: test
 
 test:
 	cargo test --verbose --all -- --nocapture
+
+grcov:
+	# grcov requires rust nightly for now
+	rm -rf target/debug/
+	# export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off"
+	export CARGO_INCREMENTAL=0 && \
+	export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort" && \
+	export RUSTDOCFLAGS="-Cpanic=abort" && \
+	cargo +nightly build
+	cargo +nightly test --verbose
+	# generate html report
+	grcov ./target/debug/ -s . -t html --llvm --branch --ignore-not-existing -o ./target/debug/coverage/
+	# open report 
+	open target/debug/coverage/index.html
+
 
 install: release debug test
 	cargo install --path . 
