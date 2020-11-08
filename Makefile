@@ -26,6 +26,15 @@ release: test
 test:
 	cargo test --verbose --all -- --nocapture
 
+geiger:
+	# cargo install cargo-geiger
+	cargo geiger
+
+tarpaulin:
+	# use docker as tarpaulin only supports x86_64 processors running linux
+	docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin
+	open tarpaulin-report.html
+
 grcov:
 	# grcov requires rust nightly for now
 	rm -rf target/debug/
@@ -35,9 +44,7 @@ grcov:
 	export RUSTDOCFLAGS="-Cpanic=abort" && \
 	cargo +nightly build
 	cargo +nightly test --verbose
-	# generate html report
 	grcov ./target/debug/ -s . -t html --llvm --branch --ignore-not-existing -o ./target/debug/coverage/
-	# open report 
 	open target/debug/coverage/index.html
 
 
