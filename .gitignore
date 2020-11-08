@@ -10,3 +10,7 @@
 **/*.rs.bk
 
 .DS_Store
+
+# ci code coverage
+tarpaulin-report.html
+cobertura.xml

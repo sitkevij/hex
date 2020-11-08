@@ -1,0 +1,5 @@
+[default]
+# Expected one of `Tests`, `Doctests`, `Benchmarks`, `Examples`, `Lib`, `Bins`, `AllTargets`
+run-types = ["Tests"]
+[report]
+out = ["Html", "Xml"]

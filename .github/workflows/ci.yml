@@ -1,0 +1,58 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+      - main
+      - master
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    name: Test Rust ${{ matrix.rust }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { rust: stable, os: ubuntu-latest }
+          - { rust: stable, os: macos-latest }
+          - { rust: stable, os: windows-latest }
+          - { rust: stable-i686-msvc, os: windows-latest }
+          - { rust: beta, os: ubuntu-latest }
+          - { rust: nightly, os: ubuntu-latest }
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+      - run: cargo test --verbose --workspace
+      - run: cargo test --verbose --workspace --all-features
+      - run: cargo test --verbose --workspace --no-default-features
+
+  clippy:
+    name: Lint with clippy
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: -Dwarnings
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          components: clippy
+      - run: cargo clippy --workspace --all-targets --verbose
+      - run: cargo clippy --workspace --all-targets --verbose --no-default-features
+      - run: cargo clippy --workspace --all-targets --verbose --all-features
+
+  rustfmt:
+    name: Verify code formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check

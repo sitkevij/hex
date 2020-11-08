@@ -26,6 +26,11 @@ release: test
 test:
 	cargo test --verbose --all -- --nocapture
 
+tarpaulin:
+	# use docker as tarpaulin only supports x86_64 processors running linux
+	docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin
+	open tarpaulin-report.html
+
 grcov:
 	# grcov requires rust nightly for now
 	rm -rf target/debug/
