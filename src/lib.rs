@@ -335,11 +335,11 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 /// # Arguments
 ///
 /// * `matches` - argument matches.
+#[allow(clippy::absurd_extreme_comparisons)]
 pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
     let mut is_stdin = false;
     if DBG > 0 {
         dbg!(env::args().len(), matches.args.len());
-        dbg!(env::args().nth(0).unwrap());
     }
     if let Some(file) = matches.value_of(ARG_INP) {
         if DBG > 0 {

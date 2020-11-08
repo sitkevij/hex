@@ -92,7 +92,7 @@ fn main() {
                 ErrorKind::BrokenPipe => process::exit(0),
                 _ => false,
             };
-            if suppress_error == false {
+            if !suppress_error {
                 eprintln!(
                     "{} {}",
                     ansi_term::Colour::Fixed(9).bold().paint("error:"),
