@@ -93,7 +93,7 @@ If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` shoul
 
 ## features
 
-### output arrays in `rust`, `c` or `golang`
+### output arrays in `rust`, `c`, `golang`, `python`, `kotlin`, or `java`
 
 `hx` has a feature which can output the input file bytes as source code arrays.
 
