@@ -335,11 +335,11 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 /// # Arguments
 ///
 /// * `matches` - argument matches.
+#[allow(clippy::absurd_extreme_comparisons)]
 pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
     let mut is_stdin = false;
     if DBG > 0 {
         dbg!(env::args().len(), matches.args.len());
-        dbg!(env::args().nth(0).unwrap());
     }
     if let Some(file) = matches.value_of(ARG_INP) {
         if DBG > 0 {
@@ -381,6 +381,9 @@ pub fn output_array(
         "r" => writeln!(locked, "let ARRAY: [u8; {}] = [", page.bytes)?,
         "c" => writeln!(locked, "unsigned char ARRAY[{}] = {{", page.bytes)?,
         "g" => writeln!(locked, "a := [{}]byte{{", page.bytes)?,
+        "p" => writeln!(locked, "a = [")?,
+        "k" => writeln!(locked, "val a = byteArrayOf(")?,
+        "j" => writeln!(locked, "byte[] a = new byte[]{{")?,
         _ => writeln!(locked, "unknown array format")?,
     }
     let mut i: u64 = 0x0;
@@ -402,8 +405,10 @@ pub fn output_array(
         "{}",
         match array_format {
             "r" => "];",
-            "c" => "};",
+            "c" | "j" => "};",
             "g" => "}",
+            "p" => "]",
+            "k" => ")",
             _ => "unknown array format",
         }
     )
@@ -508,6 +513,15 @@ mod tests {
         assert_eq!(hex_binary(b), "0b11111111");
         assert_eq!(hex_binary(b), format!("{:#010b}", b));
     }
+
+    #[test]
+    fn test_line_struct() {
+        let mut ascii_line: Line = Line::new();
+        ascii_line.ascii.push('.');
+        assert_eq!(ascii_line.ascii[0], '.');
+        assert_eq!(ascii_line.offset, 0x0);
+    }
+
     use assert_cmd::Command;
 
     /// target/debug/hx -ar tests/files/tiny.txt
