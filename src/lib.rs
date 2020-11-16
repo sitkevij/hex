@@ -15,6 +15,7 @@
 extern crate ansi_term;
 extern crate clap;
 
+use atty::Stream;
 use clap::ArgMatches;
 use std::env;
 use std::error::Error;
@@ -274,6 +275,12 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             } else {
                 colorize = false;
             }
+        }
+
+        // prevent term color codes being sent to stdout
+        // test: cat Cargo.toml | target/debug/hx | more
+        if !atty::is(Stream::Stdout) {
+            colorize = false;
         }
 
         // array output mode is mutually exclusive
