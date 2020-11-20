@@ -538,9 +538,7 @@ mod tests {
     fn test_cli_arg_order_1() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
         let assert = cmd.arg("-ar").arg("tests/files/tiny.txt").assert();
-        assert
-            .success()
-            .code(0);
+        assert.success().code(0);
     }
 
     /// target/debug/hx tests/files/tiny.txt -ar
@@ -550,9 +548,7 @@ mod tests {
     fn test_cli_arg_order_2() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
         let assert = cmd.arg("tests/files/tiny.txt").arg("-ar").assert();
-        assert
-            .success()
-            .code(0);
+        assert.success().code(0);
     }
 
     /// target/debug/hx --len tests/files/tiny.txt
