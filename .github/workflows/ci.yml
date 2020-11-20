@@ -1,6 +1,10 @@
 name: CI
 on:
   pull_request:
+    branches:
+      - develop
+      - main
+      - master
   push:
     branches:
       - develop
@@ -40,6 +44,7 @@ jobs:
       # - run: cargo test --verbose --all -- --nocapture
       # - run: cargo test --verbose --workspace --all-features
       # - run: cargo test --verbose --workspace --no-default-features
+      # see https://github.com/actions/upload-release-asset
 
   clippy:
     name: Lint with clippy

@@ -91,6 +91,13 @@ Which will compile the release version, run tests and install release binary to 
 
 If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` should be able to be executed anywhere in the shell.
 
+### debian
+
+```
+
+curl -sLO https://github.com/sitkevij/hex/releases/download/v0.3.2/hx_0.3.2_amd64.deb && dpkg -i hx_0.3.2_amd64.deb
+```
+
 ## features
 
 ### output arrays in `rust`, `c`, `golang`, `python`, `kotlin`, or `java`
