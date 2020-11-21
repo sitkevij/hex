@@ -42,6 +42,10 @@ cargo-install-tools:
 	cargo install cargo-edit
 	cargo install --list
 
+publish-dry-run:
+	cargo publish --dry-run
+	cargo package --list
+
 geiger:
 	cargo geiger
 

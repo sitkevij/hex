@@ -86,7 +86,8 @@ checksum = "48450664a984b25d5b479554c29cc04e3150c97aa4c01da5604a2d4ed9151476"
 [[package]]
 name = "no_color"
 version = "0.1.0"
-source = "git+https://github.com/sitkevij/no_color?branch=develop#c4ce4ed2b96e6ab9b26f1388254a87256825cee1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdf5e47de39a83b44018b2ee76a7a2643f37738ee44da99e145bc9804b341dd4"
 
 [[package]]
 name = "predicates"
