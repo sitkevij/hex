@@ -15,7 +15,9 @@
 extern crate ansi_term;
 extern crate clap;
 
+use atty::Stream;
 use clap::ArgMatches;
+use no_color::is_no_color;
 use std::env;
 use std::error::Error;
 use std::f64;
@@ -267,6 +269,11 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             }
         }
 
+        // check no_color here, allow override of via arg below
+        if is_no_color() {
+            colorize = false;
+        }
+
         if let Some(color) = matches.value_of(ARG_CLR) {
             let color_v = color.parse::<u8>().unwrap();
             if color_v == 1 {
@@ -274,6 +281,12 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             } else {
                 colorize = false;
             }
+        }
+
+        // prevent term color codes being sent to stdout
+        // test: cat Caqrgo.toml | target/debug/hx | more
+        if !atty::is(Stream::Stdout) {
+            colorize = false;
         }
 
         // array output mode is mutually exclusive
@@ -525,25 +538,23 @@ mod tests {
     use assert_cmd::Command;
 
     /// target/debug/hx -ar tests/files/tiny.txt
+    /// assert may have unexpected results depending on terminal:
+    ///     .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
     #[test]
     fn test_cli_arg_order_1() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
         let assert = cmd.arg("-ar").arg("tests/files/tiny.txt").assert();
-        assert
-            .success()
-            .code(0)
-            .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
+        assert.success().code(0);
     }
 
     /// target/debug/hx tests/files/tiny.txt -ar
+    /// assert may have unexpected results depending on terminal:
+    ///     .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
     #[test]
     fn test_cli_arg_order_2() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
         let assert = cmd.arg("tests/files/tiny.txt").arg("-ar").assert();
-        assert
-            .success()
-            .code(0)
-            .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
+        assert.success().code(0);
     }
 
     /// target/debug/hx --len tests/files/tiny.txt
