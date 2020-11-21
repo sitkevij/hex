@@ -93,11 +93,7 @@ fn main() {
                 _ => false,
             };
             if !suppress_error {
-                eprintln!(
-                    "{} {}",
-                    ansi_term::Colour::Fixed(9).bold().paint("error:"),
-                    err
-                );
+                eprintln!("{} {}", "error:", err);
                 process::exit(1);
             }
         }

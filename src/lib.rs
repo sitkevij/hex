@@ -17,6 +17,7 @@ extern crate clap;
 
 use atty::Stream;
 use clap::ArgMatches;
+use no_color::is_no_color;
 use std::env;
 use std::error::Error;
 use std::f64;
@@ -266,6 +267,11 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                 "E" => format_out = Format::UpperExp,
                 _ => format_out = Format::Unknown,
             }
+        }
+
+        // check no_color here, allow override of via arg below
+        if is_no_color() {
+            colorize = false;
         }
 
         if let Some(color) = matches.value_of(ARG_CLR) {

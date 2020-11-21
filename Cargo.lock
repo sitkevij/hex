@@ -68,12 +68,13 @@ checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
 
 [[package]]
 name = "hx"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "ansi_term",
  "assert_cmd",
  "atty",
  "clap",
+ "no_color",
 ]
 
 [[package]]
@@ -81,6 +82,11 @@ name = "libc"
 version = "0.2.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48450664a984b25d5b479554c29cc04e3150c97aa4c01da5604a2d4ed9151476"
+
+[[package]]
+name = "no_color"
+version = "0.1.0"
+source = "git+https://github.com/sitkevij/no_color?branch=develop#c4ce4ed2b96e6ab9b26f1388254a87256825cee1"
 
 [[package]]
 name = "predicates"

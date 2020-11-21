@@ -93,8 +93,7 @@ If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` shoul
 
 ### debian
 
-```
-
+```sh
 curl -sLO https://github.com/sitkevij/hex/releases/download/v0.3.2/hx_0.3.2_amd64.deb && dpkg -i hx_0.3.2_amd64.deb
 ```
 
