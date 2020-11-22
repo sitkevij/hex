@@ -32,7 +32,6 @@ cat "tests/files/alphanumeric.txt" | hx
 
 [![build](https://travis-ci.org/sitkevij/hex.svg?branch=master)](https://travis-ci.org/sitkevij/hex)
 [![coverage](https://img.shields.io/codecov/c/github/sitkevij/hex/master.svg)](https://codecov.io/gh/sitkevij/hex)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsitkevij%2Fhex.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsitkevij%2Fhex?ref=badge_shield)
 
 ## quick links
 
@@ -165,6 +164,10 @@ byte[] a = new byte[]{
 };
 ```
 
+### NO_COLOR support
+
+`hx` will honor the NO_COLOR environment variable. If set, no color will be output to the terminal.
+
 ## manual
 
 ```txt
@@ -195,6 +198,4 @@ ARGS:
 
 ## license
 
-MIT
-
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsitkevij%2Fhex.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsitkevij%2Fhex?ref=badge_large)
+[MIT](LICENSE)
