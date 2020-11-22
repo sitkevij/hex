@@ -26,8 +26,8 @@ panic = 'unwind'   # panic strategy (`-C panic=...`), can also be 'abort'
 opt-level = 3
 
 [dependencies]
-clap = "2.31.1"
-ansi_term = "0.11"
+clap = "2.33"
+ansi_term = "0.12"
 atty = "0.2"
 no_color = "0.1"
 
