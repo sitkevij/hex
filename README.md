@@ -2,7 +2,7 @@
 
 Futuristic take on hexdump.
 
-`hex` accepts a file path as input and outputs a hexadecimal colorized view to stdout.
+[hx](https://github.com/sitkevij/hex) accepts a file path as input and outputs a hexadecimal colorized view to stdout.
 
 ```sh
 $ hx tests/files/alphanumeric.txt
@@ -16,7 +16,7 @@ $ hx tests/files/alphanumeric.txt
    bytes: 68
 ```
 
-`hex` also accepts stdin as input.
+`hx` also accepts stdin as input.
 
 ```sh
 cat "tests/files/alphanumeric.txt" | hx
@@ -91,10 +91,16 @@ Which will compile the release version, run tests and install release binary to 
 
 If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` should be able to be executed anywhere in the shell.
 
-### debian
+### debian install
 
 ```sh
-curl -sLO https://github.com/sitkevij/hex/releases/download/v0.3.2/hx_0.3.2_amd64.deb && dpkg -i hx_0.3.2_amd64.deb
+curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.0/hx_0.4.0_amd64.deb && dpkg -i hx_0.4.0_amd64.deb
+```
+
+### docker run
+
+```sh
+cat README.md | docker run -i sitkevij/hx:latest
 ```
 
 ## features

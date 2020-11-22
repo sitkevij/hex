@@ -77,8 +77,11 @@ install-force: clean release debug test
 clippy:
 	cargo clippy
 
-docker:
-	docker build -t sitkevij/stretch-slim:$(BINARY)-0.2.0 .
+docker-build:
+	docker build -t sitkevij/hx:latest .
+
+docker-run:
+	cat README.md | docker run -i sitkevij/hx:latest
 
 clean: ## Remove all artifacts
 	rm -rf $(DEBUG_DIR)

@@ -269,8 +269,16 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             }
         }
 
-        // check no_color here, allow override of via arg below
+        // check no_color here
+        // override via ARG_CLR below
         if is_no_color() {
+            colorize = false;
+        }
+
+        // prevent term color codes being sent to stdout
+        // test: cat Cargo.toml | target/debug/hx | more
+        // override via ARG_CLR below
+        if !atty::is(Stream::Stdout) {
             colorize = false;
         }
 
@@ -281,12 +289,6 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             } else {
                 colorize = false;
             }
-        }
-
-        // prevent term color codes being sent to stdout
-        // test: cat Caqrgo.toml | target/debug/hx | more
-        if !atty::is(Stream::Stdout) {
-            colorize = false;
         }
 
         // array output mode is mutually exclusive
