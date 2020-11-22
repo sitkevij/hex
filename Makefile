@@ -14,7 +14,10 @@ BINARY = hx
 all: fmt test clean
 
 fmt:
-	cargo fmt --verbose
+	cargo fmt --all --verbose
+
+fmt-check:
+	cargo fmt --all -- --check
 
 debug:
 	export RUSTFLAGS=""
@@ -26,8 +29,24 @@ release: test
 test:
 	cargo test --verbose --all -- --nocapture
 
+example:
+	cargo run --example simple
+
+cargo-install-tools:
+	cargo install cargo-bloat
+	cargo install cargo-deb
+	cargo install cargo-geiger
+	cargo install cargo-trend
+	cargo install cargo-show
+	cargo install cargo-outdated
+	cargo install cargo-edit
+	cargo install --list
+
+publish-dry-run:
+	cargo publish --dry-run
+	cargo package --list
+
 geiger:
-	# cargo install cargo-geiger
 	cargo geiger
 
 tarpaulin:
@@ -58,8 +77,11 @@ install-force: clean release debug test
 clippy:
 	cargo clippy
 
-docker:
-	docker build -t sitkevij/stretch-slim:$(BINARY)-0.2.0 .
+docker-build:
+	docker build -t sitkevij/hx:latest .
+
+docker-run:
+	cat README.md | docker run -i sitkevij/hx:latest
 
 clean: ## Remove all artifacts
 	rm -rf $(DEBUG_DIR)

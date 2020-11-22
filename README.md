@@ -2,7 +2,7 @@
 
 Futuristic take on hexdump.
 
-`hex` accepts a file path as input and outputs a hexadecimal colorized view to stdout.
+[hx](https://github.com/sitkevij/hex) accepts a file path as input and outputs a hexadecimal colorized view to stdout.
 
 ```sh
 $ hx tests/files/alphanumeric.txt
@@ -16,7 +16,7 @@ $ hx tests/files/alphanumeric.txt
    bytes: 68
 ```
 
-`hex` also accepts stdin as input.
+`hx` also accepts stdin as input.
 
 ```sh
 cat "tests/files/alphanumeric.txt" | hx
@@ -32,7 +32,6 @@ cat "tests/files/alphanumeric.txt" | hx
 
 [![build](https://travis-ci.org/sitkevij/hex.svg?branch=master)](https://travis-ci.org/sitkevij/hex)
 [![coverage](https://img.shields.io/codecov/c/github/sitkevij/hex/master.svg)](https://codecov.io/gh/sitkevij/hex)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsitkevij%2Fhex.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsitkevij%2Fhex?ref=badge_shield)
 
 ## quick links
 
@@ -90,6 +89,18 @@ cargo install --path .
 Which will compile the release version, run tests and install release binary to `<USERDIR>/.cargo/bin/hx`.
 
 If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` should be able to be executed anywhere in the shell.
+
+### debian install
+
+```sh
+curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.0/hx_0.4.0_amd64.deb && dpkg -i hx_0.4.0_amd64.deb
+```
+
+### docker run
+
+```sh
+cat README.md | docker run -i sitkevij/hx:latest
+```
 
 ## features
 
@@ -153,6 +164,10 @@ byte[] a = new byte[]{
 };
 ```
 
+### NO_COLOR support
+
+`hx` will honor the NO_COLOR environment variable. If set, no color will be output to the terminal.
+
 ## manual
 
 ```txt
@@ -183,6 +198,4 @@ ARGS:
 
 ## license
 
-MIT
-
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fsitkevij%2Fhex.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fsitkevij%2Fhex?ref=badge_large)
+[MIT](LICENSE)

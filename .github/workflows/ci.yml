@@ -1,6 +1,10 @@
 name: CI
 on:
   pull_request:
+    branches:
+      - develop
+      - main
+      - master
   push:
     branches:
       - develop
@@ -9,6 +13,7 @@ on:
 
 env:
   RUST_BACKTRACE: full
+  NO_COLOR: 1
 
 jobs:
   test:
@@ -36,10 +41,10 @@ jobs:
       - run: cargo test --verbose --all -- --nocapture
       - run: cargo install hyperfine
       - run: echo "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." | target/release/hx
-      - run: hyperfine --warmup 20 "echo 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' | target/release/hx"
-      # - run: cargo test --verbose --all -- --nocapture
+      - run: hyperfine -i --warmup 20 "echo 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' | target/release/hx"
       # - run: cargo test --verbose --workspace --all-features
       # - run: cargo test --verbose --workspace --no-default-features
+      # see https://github.com/actions/upload-release-asset
 
   clippy:
     name: Lint with clippy

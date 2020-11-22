@@ -2,18 +2,16 @@
 authors = ["sitkevij"]
 categories = ["command-line-utilities","development-tools"]
 description = "Futuristic take on hexdump, made in Rust."
-include = ["src/**/*","Cargo.toml","Cargo.lock"]
 repository = "https://github.com/sitkevij/hex"
 keywords = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
+include = ["src/**/*","Cargo.toml","Cargo.lock", "README.md"]
 license = "MIT"
 name = "hx"
-version = "0.3.2"
+readme ="README.md"
+version = "0.4.0"
 edition = "2018"
 
 # see https://doc.rust-lang.org/cargo/reference/manifest.html
-[badges]
-travis-ci = { repository = "sitkevij/hex", branch = "master" }
-codecov = { repository = "sitkevij/hex", branch = "master", service = "github" }
 
 # The development profile, used for `cargo build`.
 [profile.dev]
@@ -28,8 +26,10 @@ panic = 'unwind'   # panic strategy (`-C panic=...`), can also be 'abort'
 opt-level = 3
 
 [dependencies]
-clap = "2.31.1"
-ansi_term = "0.11"
+clap = "2.33"
+ansi_term = "0.12"
+atty = "0.2"
+no_color = "0.1"
 
 [dev-dependencies]
 assert_cmd = "1.0.1"
