@@ -209,3 +209,7 @@ OPTIONS:
 ARGS:
     <INPUTFILE>    Pass file path as an argument for hex dump
 ```
+
+## license
+
+MIT
