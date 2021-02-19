@@ -93,7 +93,7 @@ fn main() {
                 _ => false,
             };
             if !suppress_error {
-                eprintln!("{} {}", "error:", err);
+                eprintln!("error: {}", err);
                 process::exit(1);
             }
         }
