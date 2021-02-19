@@ -104,7 +104,7 @@ cat README.md | docker run -i sitkevij/hx:latest
 
 ## features
 
-### output arrays in `rust`, `c`, `golang`, `python`, `kotlin`, or `java`
+### output arrays in `rust`, `c`, `golang`, `python`, `kotlin`, `java`, or `swift`
 
 `hx` has a feature which can output the input file bytes as source code arrays.
 
@@ -162,6 +162,15 @@ $ hx -aj -c8 tests/files/tiny.txt
 byte[] a = new byte[]{
     0x69, 0x6c, 0x0a
 };
+```
+
+#### swift array: -as
+
+```sh
+$ hx -as -c8 tests/files/tiny.txt
+let a: [UInt8] = [
+    0x69, 0x6c, 0x0a
+]
 ```
 
 ### NO_COLOR support
