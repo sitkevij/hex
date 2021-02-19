@@ -16,7 +16,7 @@ $ hx tests/files/alphanumeric.txt
    bytes: 68
 ```
 
-`hx` also accepts stdin as input.
+[hx](https://github.com/sitkevij/hex) also accepts stdin as input.
 
 ```sh
 cat "tests/files/alphanumeric.txt" | hx
@@ -177,6 +177,11 @@ let a: [UInt8] = [
 
 `hx` will honor the NO_COLOR environment variable. If set, no color will be output to the terminal.
 
+Rust `no_color` crate:
+
+* <https://crates.io/crates/no_color>
+* <https://github.com/sitkevij/no_color>
+
 ## manual
 
 ```txt
@@ -204,7 +209,3 @@ OPTIONS:
 ARGS:
     <INPUTFILE>    Pass file path as an argument for hex dump
 ```
-
-## license
-
-[MIT](LICENSE)
