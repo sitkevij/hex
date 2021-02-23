@@ -83,6 +83,9 @@ docker-build:
 docker-run:
 	cat README.md | docker run -i sitkevij/hx:latest
 
+deb:
+	cargo deb
+
 clean: ## Remove all artifacts
 	rm -rf $(DEBUG_DIR)
 	rm -rf $(RELEASE_DIR)

@@ -93,7 +93,7 @@ If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` shoul
 ### debian install
 
 ```sh
-curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.0/hx_0.4.0_amd64.deb && dpkg -i hx_0.4.0_amd64.deb
+curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.1/hx_0.4.1_amd64.deb && dpkg -i hx_0.4.1_amd64.deb
 ```
 
 ### docker run
