@@ -399,6 +399,7 @@ pub fn output_array(
         "p" => writeln!(locked, "a = [")?,
         "k" => writeln!(locked, "val a = byteArrayOf(")?,
         "j" => writeln!(locked, "byte[] a = new byte[]{{")?,
+        "s" => writeln!(locked, "let a: [UInt8] = [")?,
         _ => writeln!(locked, "unknown array format")?,
     }
     let mut i: u64 = 0x0;
@@ -424,6 +425,7 @@ pub fn output_array(
             "g" => "}",
             "p" => "]",
             "k" => ")",
+            "s" => "]",
             _ => "unknown array format",
         }
     )

@@ -16,7 +16,7 @@ $ hx tests/files/alphanumeric.txt
    bytes: 68
 ```
 
-`hx` also accepts stdin as input.
+[hx](https://github.com/sitkevij/hex) also accepts stdin as input.
 
 ```sh
 cat "tests/files/alphanumeric.txt" | hx
@@ -93,7 +93,7 @@ If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` shoul
 ### debian install
 
 ```sh
-curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.0/hx_0.4.0_amd64.deb && dpkg -i hx_0.4.0_amd64.deb
+curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.1/hx_0.4.1_amd64.deb && dpkg -i hx_0.4.1_amd64.deb
 ```
 
 ### docker run
@@ -104,7 +104,7 @@ cat README.md | docker run -i sitkevij/hx:latest
 
 ## features
 
-### output arrays in `rust`, `c`, `golang`, `python`, `kotlin`, or `java`
+### output arrays in `rust`, `c`, `golang`, `python`, `kotlin`, `java`, or `swift`
 
 `hx` has a feature which can output the input file bytes as source code arrays.
 
@@ -164,9 +164,23 @@ byte[] a = new byte[]{
 };
 ```
 
+#### swift array: -as
+
+```sh
+$ hx -as -c8 tests/files/tiny.txt
+let a: [UInt8] = [
+    0x69, 0x6c, 0x0a
+]
+```
+
 ### NO_COLOR support
 
 `hx` will honor the NO_COLOR environment variable. If set, no color will be output to the terminal.
+
+Rust `no_color` crate:
+
+* <https://crates.io/crates/no_color>
+* <https://github.com/sitkevij/no_color>
 
 ## manual
 
@@ -198,4 +212,4 @@ ARGS:
 
 ## license
 
-[MIT](LICENSE)
+MIT

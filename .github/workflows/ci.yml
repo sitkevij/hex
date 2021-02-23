@@ -10,6 +10,8 @@ on:
       - develop
       - main
       - master
+  schedule:
+    - cron: "0 9 * * *"
 
 env:
   RUST_BACKTRACE: full
