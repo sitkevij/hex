@@ -90,6 +90,12 @@ Which will compile the release version, run tests and install release binary to 
 
 If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` should be able to be executed anywhere in the shell.
 
+### arch linux install
+
+```
+pacman -S hex
+```
+
 ### debian install
 
 ```sh
