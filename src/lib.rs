@@ -361,13 +361,17 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
             dbg!(file);
         }
         is_stdin = false;
-    } else if let Some(nth1) = env::args().nth(1) {
-        if DBG > 0 {
-            dbg!(nth1);
+    } else if !atty::is(Stream::Stdin) {
+        if let Some(nth1) = env::args().nth(1) {
+            if DBG > 0 {
+                dbg!(nth1);
+            }
+            is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
+        } else if matches.args.is_empty() {
+            is_stdin = true;
         }
-        is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
-    } else if matches.args.is_empty() {
-        is_stdin = true;
+    } else {
+        return Err("No input provided, run with --help for list of options".into());
     }
     if DBG > 0 {
         dbg!(is_stdin);
