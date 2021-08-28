@@ -86,7 +86,7 @@ pub struct Line {
     /// hex body
     pub hex_body: Vec<u8>,
     /// ascii text
-    pub ascii: Vec<char>,
+    pub ascii: Vec<u8>,
     /// total bytes in Line
     pub bytes: u64,
 }
@@ -162,12 +162,9 @@ pub fn hex_binary(b: u8) -> String {
 
 /// print byte to std out
 pub fn print_byte(w: &mut impl Write, b: u8, format: Format, colorize: bool) -> io::Result<()> {
-    let mut color: u8 = b;
-    if color < 1 {
-        color = 0x16;
-    }
     if colorize {
         // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
+        let color = byte_to_color(b);
         match format {
             Format::Octal => write!(
                 w,
@@ -207,6 +204,32 @@ pub fn print_byte(w: &mut impl Write, b: u8, format: Format, colorize: bool) -> 
             Format::Binary => write!(w, "{} ", hex_binary(b)),
             _ => write!(w, "unk_fmt "),
         }
+    }
+}
+
+/// get the color for a specific byte
+pub fn byte_to_color(b: u8) -> u8 {
+    let mut color: u8 = b;
+    if color < 1 {
+        color = 0x16;
+    }
+    color
+}
+
+/// append char representation of a byte to a buffer
+pub fn append_ascii(target: &mut Vec<u8>, b: u8, colorize: bool) {
+    let char = match b > 31 && b < 127 {
+        true => b as char,
+        false => '.',
+    };
+
+    if colorize {
+        let string = ansi_term::Style::new()
+            .fg(ansi_term::Color::Fixed(byte_to_color(b)))
+            .paint(char.to_string());
+        target.extend(format!("{}", string).as_bytes());
+    } else {
+        target.extend(format!("{}", char).as_bytes());
     }
 }
 
@@ -316,12 +339,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                     offset_counter += 1;
                     byte_column += 1;
                     print_byte(&mut locked, *hex, format_out, colorize)?;
-
-                    if *hex > 31 && *hex < 127 {
-                        ascii_line.ascii.push(*hex as char);
-                    } else {
-                        ascii_line.ascii.push('.');
-                    }
+                    append_ascii(&mut ascii_line.ascii, *hex, colorize);
                 }
 
                 if byte_column < column_width {
@@ -333,10 +351,11 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                     )?;
                 }
 
+                locked.write_all(ascii_line.ascii.as_slice())?;
+                writeln!(locked)?;
+
                 byte_column = 0x0;
-                let ascii_string: String = ascii_line.ascii.iter().cloned().collect();
                 ascii_line = Line::new();
-                writeln!(locked, "{}", ascii_string)?; // print ascii string
             }
             if true {
                 writeln!(locked, "   bytes: {}", page.bytes)?;
@@ -534,8 +553,8 @@ mod tests {
     #[test]
     fn test_line_struct() {
         let mut ascii_line: Line = Line::new();
-        ascii_line.ascii.push('.');
-        assert_eq!(ascii_line.ascii[0], '.');
+        ascii_line.ascii.push(b'.');
+        assert_eq!(ascii_line.ascii[0], b'.');
         assert_eq!(ascii_line.offset, 0x0);
     }
 
