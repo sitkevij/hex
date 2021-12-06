@@ -102,6 +102,18 @@ pacman -S hex
 curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.2/hx_0.4.2_amd64.deb && dpkg -i hx_0.4.2_amd64.deb
 ```
 
+### guix install
+
+```sh
+guix install hex
+```
+
+In an isolated environment:
+
+```sh
+guix shell --container hex
+```
+
 ### docker run
 
 ```sh
