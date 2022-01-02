@@ -41,9 +41,11 @@ pub const ARG_ARR: &str = "array";
 pub const ARG_FNC: &str = "func";
 /// arg places
 pub const ARG_PLC: &str = "places";
+/// arg prefix
+pub const ARG_PFX: &str = "prefix";
 
-const ARGS: [&str; 8] = [
-    ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC,
+const ARGS: [&str; 9] = [
+    ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC, ARG_PFX,
 ];
 
 const DBG: u8 = 0x0;

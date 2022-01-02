@@ -1,7 +1,7 @@
 extern crate clap;
 mod lib;
 use clap::{App, Arg};
-use lib::{ARG_ARR, ARG_CLR, ARG_COL, ARG_FMT, ARG_FNC, ARG_INP, ARG_LEN, ARG_PLC};
+use lib::{ARG_ARR, ARG_CLR, ARG_COL, ARG_FMT, ARG_FNC, ARG_INP, ARG_LEN, ARG_PFX, ARG_PLC};
 use std::env;
 use std::io::Error;
 use std::io::ErrorKind;
@@ -78,6 +78,14 @@ fn main() {
                 .long(ARG_PLC)
                 .value_name("func_places")
                 .help("Set function wave output decimal places")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name(ARG_PFX)
+                .short("r")
+                .long(ARG_PFX)
+                .help("Set prefix presence. 0 to disable, 1 to enable")
+                .possible_values(&["0", "1"])
                 .takes_value(true),
         );
 
