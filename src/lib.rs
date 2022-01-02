@@ -163,7 +163,13 @@ pub fn hex_binary(b: u8) -> String {
 }
 
 /// print byte to std out
-pub fn print_byte(w: &mut impl Write, b: u8, format: Format, colorize: bool) -> io::Result<()> {
+pub fn print_byte(
+    w: &mut impl Write,
+    b: u8,
+    format: Format,
+    colorize: bool,
+    _prefix: bool,
+) -> io::Result<()> {
     if colorize {
         // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
         let color = byte_to_color(b);
@@ -271,6 +277,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
+        let mut enable_prefix = false;
 
         if let Some(columns) = matches.value_of(ARG_COL) {
             column_width = columns.parse::<u64>().unwrap(); //turbofish
@@ -278,6 +285,10 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 
         if let Some(length) = matches.value_of(ARG_LEN) {
             truncate_len = length.parse::<u64>()?;
+        }
+
+        if let Some(prefix) = matches.value_of(ARG_PFX) {
+            enable_prefix = prefix.parse::<u8>().unwrap() != 0;
         }
 
         if let Some(format) = matches.value_of(ARG_FMT) {
@@ -340,7 +351,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                 for hex in line.hex_body.iter() {
                     offset_counter += 1;
                     byte_column += 1;
-                    print_byte(&mut locked, *hex, format_out, colorize)?;
+                    print_byte(&mut locked, *hex, format_out, colorize, enable_prefix)?;
                     append_ascii(&mut ascii_line.ascii, *hex, colorize);
                 }
 
