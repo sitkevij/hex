@@ -147,9 +147,19 @@ pub fn hex_octal(b: u8) -> String {
     format!("{:#06o}", b)
 }
 
+/// hex octal without prefix, takes u8
+pub fn hex_octal_without_prefix(b: u8) -> String {
+    format!("{:04o}", b)
+}
+
 /// hex lower hex, takes u8
 pub fn hex_lower_hex(b: u8) -> String {
     format!("{:#04x}", b)
+}
+
+/// hex lower hex without prefix, takes u8
+pub fn hex_lower_hex_without_prefix(b: u8) -> String {
+    format!("{:02x}", b)
 }
 
 /// hex upper hex, takes u8
@@ -157,9 +167,19 @@ pub fn hex_upper_hex(b: u8) -> String {
     format!("{:#04X}", b)
 }
 
+/// hex upper hex without prefix, takes u8
+pub fn hex_upper_hex_without_prefix(b: u8) -> String {
+    format!("{:02X}", b)
+}
+
 /// hex binary, takes u8
 pub fn hex_binary(b: u8) -> String {
     format!("{:#010b}", b)
+}
+
+/// hex binary without prefix, takes u8
+pub fn hex_binary_without_prefix(b: u8) -> String {
+    format!("{:08b}", b)
 }
 
 /// print byte to std out
@@ -168,7 +188,7 @@ pub fn print_byte(
     b: u8,
     format: Format,
     colorize: bool,
-    _prefix: bool,
+    prefix: bool,
 ) -> io::Result<()> {
     if colorize {
         // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
@@ -179,37 +199,57 @@ pub fn print_byte(
                 "{} ",
                 ansi_term::Style::new()
                     .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_octal(b))
+                    .paint(if prefix {
+                        hex_octal(b)
+                    } else {
+                        hex_octal_without_prefix(b)
+                    })
             ),
             Format::LowerHex => write!(
                 w,
                 "{} ",
                 ansi_term::Style::new()
                     .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_lower_hex(b))
+                    .paint(if prefix {
+                        hex_lower_hex(b)
+                    } else {
+                        hex_lower_hex_without_prefix(b)
+                    })
             ),
             Format::UpperHex => write!(
                 w,
                 "{} ",
                 ansi_term::Style::new()
                     .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_upper_hex(b))
+                    .paint(if prefix {
+                        hex_upper_hex(b)
+                    } else {
+                        hex_upper_hex_without_prefix(b)
+                    })
             ),
             Format::Binary => write!(
                 w,
                 "{} ",
                 ansi_term::Style::new()
                     .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_binary(b))
+                    .paint(if prefix {
+                        hex_binary(b)
+                    } else {
+                        hex_binary_without_prefix(b)
+                    })
             ),
             _ => write!(w, "unk_fmt "),
         }
     } else {
         match format {
-            Format::Octal => write!(w, "{} ", hex_octal(b)),
-            Format::LowerHex => write!(w, "{} ", hex_lower_hex(b)),
-            Format::UpperHex => write!(w, "{} ", hex_upper_hex(b)),
-            Format::Binary => write!(w, "{} ", hex_binary(b)),
+            Format::Octal if prefix => write!(w, "{} ", hex_octal(b)),
+            Format::Octal => write!(w, "{} ", hex_octal_without_prefix(b)),
+            Format::LowerHex if prefix => write!(w, "{} ", hex_lower_hex(b)),
+            Format::LowerHex => write!(w, "{} ", hex_lower_hex_without_prefix(b)),
+            Format::UpperHex if prefix => write!(w, "{} ", hex_upper_hex(b)),
+            Format::UpperHex => write!(w, "{} ", hex_upper_hex_without_prefix(b)),
+            Format::Binary if prefix => write!(w, "{} ", hex_binary(b)),
+            Format::Binary => write!(w, "{} ", hex_binary_without_prefix(b)),
             _ => write!(w, "unk_fmt "),
         }
     }
