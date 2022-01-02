@@ -396,11 +396,19 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                 }
 
                 if byte_column < column_width {
+                    let mut step = match format_out {
+                        Format::Octal => 7,
+                        Format::LowerHex => 5,
+                        Format::UpperHex => 5,
+                        Format::Binary => 11,
+                        _ => 5,
+                    };
+                    step -= if enable_prefix { 0 } else { 2 };
                     write!(
                         locked,
                         "{:<1$}",
                         "",
-                        5 * (column_width - byte_column) as usize
+                        step * (column_width - byte_column) as usize
                     )?;
                 }
 

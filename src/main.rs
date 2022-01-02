@@ -86,7 +86,8 @@ fn main() {
                 .long(ARG_PFX)
                 .help("Set prefix presence. 0 to disable, 1 to enable")
                 .possible_values(&["0", "1"])
-                .takes_value(true),
+                .default_value("1")
+                .takes_value(true)
         );
 
     let matches = app.get_matches();
