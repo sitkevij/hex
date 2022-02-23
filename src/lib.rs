@@ -419,6 +419,7 @@ pub fn output_array(
         "k" => writeln!(locked, "val a = byteArrayOf(")?,
         "j" => writeln!(locked, "byte[] a = new byte[]{{")?,
         "s" => writeln!(locked, "let a: [UInt8] = [")?,
+        "f" => writeln!(locked, "let a = [|")?,
         _ => writeln!(locked, "unknown array format")?,
     }
     let mut i: u64 = 0x0;
@@ -427,9 +428,17 @@ pub fn output_array(
         for hex in line.hex_body.iter() {
             i += 1;
             if i == page.bytes && array_format != "g" {
-                write!(locked, "{}", hex_lower_hex(*hex))?;
+                if array_format != "f" {
+                    write!(locked, "{}", hex_lower_hex(*hex))?;
+                } else {
+                    write!(locked, "{}uy", hex_lower_hex(*hex))?;
+                }
             } else {
-                write!(locked, "{}, ", hex_lower_hex(*hex))?;
+                if array_format != "f" {
+                    write!(locked, "{}, ", hex_lower_hex(*hex))?;
+                } else {
+                    write!(locked, "{}uy; ", hex_lower_hex(*hex))?;
+                }
             }
         }
         writeln!(locked)?;
@@ -445,6 +454,7 @@ pub fn output_array(
             "p" => "]",
             "k" => ")",
             "s" => "]",
+            "f" => "|]",
             _ => "unknown array format",
         }
     )

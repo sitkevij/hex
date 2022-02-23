@@ -191,6 +191,15 @@ let a: [UInt8] = [
 ]
 ```
 
+#### fsharp array: -af
+
+```sh
+$ hx -af -c8 tests/files/tiny.txt
+let a = [|
+    0x69uy; 0x6cuy; 0x0auy
+|]
+```
+
 ### NO_COLOR support
 
 `hx` will honor the NO_COLOR environment variable. If set, no color will be output to the terminal.
