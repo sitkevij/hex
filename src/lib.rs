@@ -433,12 +433,10 @@ pub fn output_array(
                 } else {
                     write!(locked, "{}uy", hex_lower_hex(*hex))?;
                 }
+            } else if array_format != "f" {
+                write!(locked, "{}, ", hex_lower_hex(*hex))?;
             } else {
-                if array_format != "f" {
-                    write!(locked, "{}, ", hex_lower_hex(*hex))?;
-                } else {
-                    write!(locked, "{}uy; ", hex_lower_hex(*hex))?;
-                }
+                write!(locked, "{}uy; ", hex_lower_hex(*hex))?;
             }
         }
         writeln!(locked)?;
