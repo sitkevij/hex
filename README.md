@@ -102,6 +102,18 @@ pacman -S hex
 curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.2/hx_0.4.2_amd64.deb && dpkg -i hx_0.4.2_amd64.deb
 ```
 
+### guix install
+
+```sh
+guix install hex
+```
+
+In an isolated environment:
+
+```sh
+guix shell --container hex
+```
+
 ### docker run
 
 ```sh
@@ -177,6 +189,15 @@ $ hx -as -c8 tests/files/tiny.txt
 let a: [UInt8] = [
     0x69, 0x6c, 0x0a
 ]
+```
+
+#### fsharp array: -af
+
+```sh
+$ hx -af -c8 tests/files/tiny.txt
+let a = [|
+    0x69uy; 0x6cuy; 0x0auy
+|]
 ```
 
 ### NO_COLOR support
