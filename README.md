@@ -1,8 +1,8 @@
 # hex (hx)
 
-Futuristic take on hexdump.
+A futuristic take on `hexdump`.
 
-[hx](https://github.com/sitkevij/hex) accepts a file path as input and outputs a hexadecimal colorized view to stdout.
+[hx](https://github.com/sitkevij/hex) accepts a file path as input and outputs a colorized hexadecimal view to stdout.
 
 ```sh
 $ hx tests/files/alphanumeric.txt
@@ -33,34 +33,34 @@ cat "tests/files/alphanumeric.txt" | hx
 [![build](https://travis-ci.org/sitkevij/hex.svg?branch=master)](https://travis-ci.org/sitkevij/hex)
 [![coverage](https://img.shields.io/codecov/c/github/sitkevij/hex/master.svg)](https://codecov.io/gh/sitkevij/hex)
 
-## quick links
+## Quick Links
 
 * [install](#install)
 * [features](#features)
 * [manual](#manual)
 * [license](#license)
 
-## examples
+## Example flags (Optional)
 
-### lower hex format -fx
+### Lower hex format `-fx`
 
 `$ hx src/main.rs`
 
 ![lower hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/assets/hex_screenshot_macos_format_default.png "default output format")
 
-### binary hex format -fb
+### Binary hex format `-fb`
 
 `$ hx -fb -c4 src/main.rs`
 
 ![binary hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/assets/hex_screenshot_macos_format_b.png)
 
-### octal hex format -fo
+### Octal hex format `-fo`
 
 `$ hx -fo -c8 src/main.rs`
 
 ![octal hex output format](https://raw.githubusercontent.com/sitkevij/hex/master/assets/hex_screenshot_macos_format_o.png)
 
-## install
+## Installation
 
 ### crates.io install
 
@@ -86,49 +86,55 @@ cargo test --verbose --all -- --nocapture
 cargo install --path .
 ```
 
-Which will compile the release version, run tests and install release binary to `<USERDIR>/.cargo/bin/hx`.
+Which will compile the release version, run tests, and install the resulting binary to `<USERDIR>/.cargo/bin/hx`.
 
-If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` should be able to be executed anywhere in the shell.
+If `<USERDIR>/.cargo/bin` is part of the `PATH` environment variable, `hx` can be executed anywhere in the shell.
 
-### arch linux install
+### Arch Linux
 
 ```sh
 pacman -S hex
 ```
 
-### debian install
+### Debian
 
 ```sh
 curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.2/hx_0.4.2_amd64.deb && dpkg -i hx_0.4.2_amd64.deb
 ```
 
-### guix install
-
-```sh
-guix install hex
-```
-
-In an isolated environment:
-
-```sh
-guix shell --container hex
-```
-
-### docker run
+### Docker
 
 ```sh
 cat README.md | docker run -i sitkevij/hx:latest
 ```
 
-## features
+### Guix
 
-### output arrays in `rust`, `c`, `golang`, `python`, `kotlin`, `java`, or `swift`
+```sh
+guix install hex
+```
+
+### Alternate Guix install (Isolated environments):
+
+```sh
+guix shell --container hex
+```
+
+### Homebrew
+
+```sh
+brew install hex
+```
+
+## Features
+
+### Output arrays in `rust`, `c`, `golang`, `python`, `kotlin`, `java`, or `swift`
 
 `hx` has a feature which can output the input file bytes as source code arrays.
 
 For example:
 
-#### rust array: -ar
+#### Rust array: `-ar`
 
 ```sh
 $ hx -ar -c8 tests/files/tiny.txt
@@ -137,7 +143,7 @@ let ARRAY: [u8; 3] = [
 ];
 ```
 
-#### c array: -ac
+#### C array: `-ac`
 
 ```sh
 $ hx -ac -c8 tests/files/tiny.txt
@@ -146,7 +152,7 @@ unsigned char ARRAY[3] = {
 };
 ```
 
-#### golang array: -ag
+#### Go array: `-ag`
 
 ```sh
 $ hx -ag -c8 tests/files/tiny.txt
@@ -155,7 +161,7 @@ a := [3]byte{
 }
 ```
 
-#### python array: -ap
+#### Python array: `-ap`
 
 ```sh
 $ hx -ap -c8 tests/files/tiny.txt
@@ -164,7 +170,7 @@ a = [
 ]
 ```
 
-#### kotlin array: -ak
+#### Kotlin array: `-ak`
 
 ```sh
 $ hx -ak -c8 tests/files/tiny.txt
@@ -173,7 +179,7 @@ val a = byteArrayOf(
 )
 ```
 
-#### java array: -aj
+#### Java array: `-aj`
 
 ```sh
 $ hx -aj -c8 tests/files/tiny.txt
@@ -182,7 +188,7 @@ byte[] a = new byte[]{
 };
 ```
 
-#### swift array: -as
+#### Swift array: `-as`
 
 ```sh
 $ hx -as -c8 tests/files/tiny.txt
@@ -191,43 +197,15 @@ let a: [UInt8] = [
 ]
 ```
 
-### NO_COLOR support
+### `NO_COLOR` support
 
-`hx` will honor the NO_COLOR environment variable. If set, no color will be output to the terminal.
+`hx` will honor the `NO_COLOR` environment variable. If set, no color will be output to the terminal.
 
 Rust `no_color` crate:
 
 * <https://crates.io/crates/no_color>
 * <https://github.com/sitkevij/no_color>
 
-## manual
+## License
 
-```txt
-hx
-Futuristic take on hexdump, made in Rust.
-
-USAGE:
-    hx [OPTIONS] [INPUTFILE]
-    <stdout> | hx [OPTIONS]
-
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-OPTIONS:
-    -a, --array <array_format>    Set source code format output: rust (r), C (c), golang (g), python (p), kotlin (k), java (j) [possible values: r, c, g, p, k, j]
-    -t, --color <color>           Set color tint terminal output. 0 to disable, 1 to enable [possible values: 0, 1]
-    -c, --cols <columns>          Set column length
-    -f, --format <format>         Set format of octet: Octal (o), LowerHex (x), UpperHex (X), Binary (b) [possible
-                                  values: o, x, X, b]
-    -u, --func <func_length>      Set function wave length
-    -l, --len <len>               Set <len> bytes to read
-    -p, --places <func_places>    Set function wave output decimal places
-
-ARGS:
-    <INPUTFILE>    Pass file path as an argument for hex dump
-```
-
-## license
-
-MIT
+[MIT](https://opensource.org/license/mit/)
