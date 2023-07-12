@@ -1,6 +1,6 @@
 # hex (hx)
 
-A futuristic take on `hexdump`.
+A futuristic take on `hexdump`, made with Rust.
 
 [hx](https://github.com/sitkevij/hex) accepts a file path as input and outputs a colorized hexadecimal view to stdout.
 

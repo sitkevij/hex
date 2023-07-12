@@ -1,5 +1,6 @@
 hx
-Futuristic take on hexdump, made in Rust.
+
+A futuristic take on hexdump, made with Rust.
 
 USAGE:
     hx [OPTIONS] [INPUTFILE]
