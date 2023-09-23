@@ -10,6 +10,7 @@
 **/*.rs.bk
 
 .DS_Store
+.vscode
 
 # ci code coverage
 tarpaulin-report.html

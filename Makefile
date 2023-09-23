@@ -42,6 +42,9 @@ cargo-install-tools:
 	cargo install cargo-edit
 	cargo install --list
 
+python-install-tools:
+	pip install codespell
+
 publish-dry-run:
 	cargo publish --dry-run
 	cargo package --list
