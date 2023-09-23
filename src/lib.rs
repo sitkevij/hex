@@ -307,11 +307,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 
         if let Some(color) = matches.value_of(ARG_CLR) {
             let color_v = color.parse::<u8>().unwrap();
-            if color_v == 1 {
-                colorize = true;
-            } else {
-                colorize = false;
-            }
+            colorize = color_v == 1;
         }
 
         // array output mode is mutually exclusive
