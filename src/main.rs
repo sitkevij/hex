@@ -42,7 +42,7 @@ fn main() {
         )
         .arg(
             Arg::with_name(hx::ARG_INP)
-                .help("Pass file path as an argument for hex dump")
+                .help("Pass file path as an argument, or input data may be passed via stdin")
                 .required(false)
                 .index(1),
         )

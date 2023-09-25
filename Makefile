@@ -89,6 +89,17 @@ docker-run:
 deb:
 	cargo deb
 
+manpage:
+	target/debug/hx --help >target/debug/hx.1.txt
+	pandoc MANPAGE.md -s -t man
+	HELP=$(cat target/debug/hx.1.txt)
+	echo "$HELP"
+	MANPAGE=$(cat MANPAGE.md)
+	# echo $MANPAGE | sed 's/$/\\n/g' | tr -d'\n'
+	pandoc --standalone --to man MANPAGE.md -o hx.1
+	cp hx.1 /usr/local/share/man/man1
+	man hx
+
 clean: ## Remove all artifacts
 	rm -rf $(DEBUG_DIR)
 	rm -rf $(RELEASE_DIR)
