@@ -1,0 +1,29 @@
+# MD013/line-length - Line length
+MD013:
+  # Number of characters
+  line_length: 100
+  # Number of characters for headings
+  heading_line_length: 100
+  # Number of characters for code blocks
+  code_block_line_length: 100
+  # Include code blocks
+  code_blocks: false
+  # Include tables
+  tables: false
+  # Include headings
+  headings: true
+  # Include headings
+  headers: true
+  # Strict length checking
+  strict: false
+  # Stern length checking
+  stern: false
+
+# set for man page markdown
+MD025: false
+# MD025/single-title/single-h1 - Multiple top-level headings in the same document
+# MD025:
+#   # Heading level
+#   level: 1
+#   # RegExp for matching title in front matter
+#   front_matter_title: "^\\s*title\\s*[:=]"

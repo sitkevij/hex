@@ -6,7 +6,7 @@
 
 ```txt
 hx [-tcfl][--color=0,1][--cols 0-9][--format oxXb] inputfile
-hx [-a rcgpkjsf][ --array=rcgpkjsf] inputfile
+hx [-a rcgpkjsf][--array=rcgpkjsf] inputfile
 hx [-up][--func 0-9][--places 0-9]
 hx [-hV]
 ```
@@ -14,8 +14,12 @@ hx [-hV]
 # OPTIONS
 
 ```txt
+hx
+Futuristic take on hexdump, made in Rust.
+
 USAGE:
     hx [OPTIONS] [INPUTFILE]
+    <stdin> hx [OPTIONS]
 
 FLAGS:
     -h, --help       Prints help information
@@ -34,7 +38,6 @@ OPTIONS:
 
 ARGS:
     <INPUTFILE>    Pass file path as an argument, or input data may be passed via stdin
-
 ```
 
 # DESCRIPTION
@@ -51,7 +54,7 @@ The **NO_COLOR** environment variable is honored if set.
 
 # EXAMPLES
 
-**hx** with file path as input, outputting colorized hexadecimal.
+**hx** with file path as input, outputting colorized hexadecimal:
 
 ```sh
 $ hx tests/files/alphanumeric.txt
@@ -65,10 +68,10 @@ $ hx tests/files/alphanumeric.txt
    bytes: 68
 ```
 
-**hx** with stdin as input, outputting colorized hexadecimal.
+**hx** with stdin as input, outputting colorized hexadecimal:
 
 ```sh
-$ cat "tests/files/alphanumeric.txt" | hx
+$ cat tests/files/alphanumeric.txt | hx
 0x000000: 0x61 0x62 0x63 0x64 0x65 0x66 0x67 0x68 0x69 0x6a abcdefghij
 0x00000a: 0x6b 0x69 0x6c 0x6d 0x6e 0x6f 0x70 0x71 0x72 0x73 kilmnopqrs
 0x000014: 0x74 0x75 0x76 0x77 0x78 0x79 0x7a 0x30 0x31 0x32 tuvwxyz012

@@ -57,7 +57,7 @@ const DBG: u8 = 0x0;
 /// b ⇒ Binary
 /// e ⇒ LowerExp
 /// E ⇒ UpperExp
-/// evaulate for traits implementation
+/// evaluate for traits implementation
 #[derive(Copy, Clone, Debug)]
 pub enum Format {
     /// octal format
