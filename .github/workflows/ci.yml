@@ -1,4 +1,4 @@
-name: CI
+name: ci
 on:
   pull_request:
     branches:
@@ -33,8 +33,8 @@ jobs:
           - { rust: beta, os: ubuntu-latest, experimental: true }
           - { rust: nightly, os: ubuntu-latest, experimental: true }
     steps:
-      - uses: actions/checkout@v2
-      - uses: hecrj/setup-rust-action@v1
+      - uses: actions/checkout@v4
+      - uses: hecrj/setup-rust-action@v2
         with:
           rust-version: ${{ matrix.rust }}
 
@@ -54,8 +54,8 @@ jobs:
     env:
       RUSTFLAGS: -Dwarnings
     steps:
-      - uses: actions/checkout@v2
-      - uses: hecrj/setup-rust-action@v1
+      - uses: actions/checkout@v4
+      - uses: hecrj/setup-rust-action@v2
         with:
           components: clippy
       - run: cargo clippy --workspace --all-targets --verbose
@@ -66,8 +66,17 @@ jobs:
     name: Verify code formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: hecrj/setup-rust-action@v1
+      - uses: actions/checkout@v4
+      - uses: hecrj/setup-rust-action@v2
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check
+
+  codespell:
+    name: Verify code spelling
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          pip install codespell
+          codespell -L crate

@@ -33,8 +33,8 @@ cat tests/files/alphanumeric.txt | hx
    bytes: 68
 ```
 
-[![build status](https://github.com/sitkevij/hex/workflows/CI/badge.svg)](https://github.com/sitkevij/hex/actions)
 [![crates.io](https://img.shields.io/crates/v/hx.svg)](https://crates.io/crates/hx)
+[![build status](https://github.com/sitkevij/hex/workflows/ci/badge.svg)](https://github.com/sitkevij/hex/actions)
 
 ## quick links
 
@@ -128,7 +128,12 @@ guix shell --container hex
 ### docker run
 
 ```sh
-cat README.md | docker run -i sitkevij/hx:latest
+# stdin
+cat README.md | docker run -ti sitkevij/hx:latest
+
+# file input with parameters and NO_COLOR environment variable
+echo "NO_COLOR=1" >docker_env_vars.ignore.txt &&
+docker run -ti --env-file docker_env_vars.ignore.txt -v $(pwd)/README.md:/README.md sitkevij/hx:latest -fo -c8 /README.md
 ```
 
 ## features
