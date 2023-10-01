@@ -33,8 +33,8 @@ cat tests/files/alphanumeric.txt | hx
    bytes: 68
 ```
 
-[![build](https://travis-ci.org/sitkevij/hex.svg?branch=master)](https://travis-ci.org/sitkevij/hex)
-[![coverage](https://img.shields.io/codecov/c/github/sitkevij/hex/master.svg)](https://codecov.io/gh/sitkevij/hex)
+[![build status](https://github.com/sitkevij/hex/workflows/CI/badge.svg)](https://github.com/sitkevij/hex/actions)
+[![crates.io](https://img.shields.io/crates/v/hx.svg)](https://crates.io/crates/hx)
 
 ## quick links
 
