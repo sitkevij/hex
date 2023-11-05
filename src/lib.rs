@@ -245,9 +245,9 @@ pub fn append_ascii(target: &mut Vec<u8>, b: u8, colorize: bool) {
 pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
     let mut column_width: u64 = 10;
     let mut truncate_len: u64 = 0x0;
-    if let Some(len) = matches.value_of("func") {
+    if let Some(len) = matches.get_one::<String>("func").map(|s| s.as_str()) {
         let mut p: usize = 4;
-        if let Some(places) = matches.value_of("places") {
+        if let Some(places) = matches.get_one::<String>("places").map(|s| s.as_str()) {
             p = places.parse::<usize>().unwrap();
         }
         output_function(len.parse::<u64>().unwrap(), p);
@@ -262,21 +262,24 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             Box::new(BufReader::new(io::stdin()))
         } else {
             Box::new(BufReader::new(fs::File::open(
-                matches.value_of(ARG_INP).unwrap(),
+                matches
+                    .get_one::<String>(ARG_INP)
+                    .map(|s| s.as_str())
+                    .unwrap(),
             )?))
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
 
-        if let Some(columns) = matches.value_of(ARG_COL) {
+        if let Some(columns) = matches.get_one::<String>(ARG_COL).map(|s| s.as_str()) {
             column_width = columns.parse::<u64>().unwrap(); //turbofish
         }
 
-        if let Some(length) = matches.value_of(ARG_LEN) {
+        if let Some(length) = matches.get_one::<String>(ARG_LEN).map(|s| s.as_str()) {
             truncate_len = length.parse::<u64>()?;
         }
 
-        if let Some(format) = matches.value_of(ARG_FMT) {
+        if let Some(format) = matches.get_one::<String>(ARG_FMT).map(|s| s.as_str()) {
             // o, x, X, p, b, e, E
             match format {
                 "o" => format_out = Format::Octal,
@@ -303,7 +306,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             colorize = false;
         }
 
-        if let Some(color) = matches.value_of(ARG_CLR) {
+        if let Some(color) = matches.get_one::<String>(ARG_CLR).map(|s| s.as_str()) {
             let color_v = color.parse::<u8>().unwrap();
             if color_v == 1 {
                 colorize = true;
