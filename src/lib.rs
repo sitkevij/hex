@@ -11,9 +11,7 @@
     unused_qualifications
 )]
 
-//! general hex lib
-extern crate ansi_term;
-extern crate clap;
+//! general hex
 
 use atty::Stream;
 use clap::ArgMatches;
@@ -315,7 +313,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         }
 
         // array output mode is mutually exclusive
-        if let Some(array) = matches.value_of(ARG_ARR) {
+        if let Some(array) = matches.get_one::<String>(ARG_ARR).map(|s| s.as_str()) {
             output_array(array, buf, truncate_len, column_width)?;
         } else {
             // Transforms this Read instance to an Iterator over its bytes.
@@ -373,9 +371,9 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
     let mut is_stdin = false;
     if DBG > 0 {
-        dbg!(env::args().len(), matches.args.len());
+        dbg!(env::args().len());
     }
-    if let Some(file) = matches.value_of(ARG_INP) {
+    if let Some(file) = matches.get_one::<String>(ARG_INP).map(|s| s.as_str()) {
         if DBG > 0 {
             dbg!(file);
         }
@@ -385,7 +383,7 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
             dbg!(nth1);
         }
         is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
-    } else if matches.args.is_empty() {
+    } else if !matches.args_present() {
         is_stdin = true;
     }
     if DBG > 0 {
