@@ -11,7 +11,7 @@
     unused_qualifications
 )]
 
-//! general hex
+//! general hex lib
 
 use atty::Stream;
 use clap::ArgMatches;
