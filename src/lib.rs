@@ -247,10 +247,16 @@ pub fn append_ascii(target: &mut Vec<u8>, b: u8, colorize: bool) {
 pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
     let mut column_width: u64 = 10;
     let mut truncate_len: u64 = 0x0;
-    if let Some(len) = matches.value_of("func") {
+    if let Some(len) = matches.get_one::<String>("func") {
         let mut p: usize = 4;
-        if let Some(places) = matches.value_of("places") {
-            p = places.parse::<usize>().unwrap();
+        if let Some(places) = matches.get_one::<String>("places") {
+            p = match places.parse::<usize>() {
+                Ok(p) => p,
+                Err(e) => {
+                    eprintln!("-p, --places <integer> expected. {:?}", e);
+                    return Err(Box::new(e));
+                }
+            }
         }
         output_function(len.parse::<u64>().unwrap(), p);
     } else {
@@ -264,23 +270,35 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             Box::new(BufReader::new(io::stdin()))
         } else {
             Box::new(BufReader::new(fs::File::open(
-                matches.value_of(ARG_INP).unwrap(),
+                matches.get_one::<String>(ARG_INP).unwrap(),
             )?))
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
 
-        if let Some(columns) = matches.value_of(ARG_COL) {
-            column_width = columns.parse::<u64>().unwrap(); //turbofish
+        if let Some(columns) = matches.get_one::<String>(ARG_COL) {
+            column_width = match columns.parse::<u64>() {
+                Ok(column_width) => column_width,
+                Err(e) => {
+                    eprintln!("-c, --cols <integer> expected. {:?}", e);
+                    return Err(Box::new(e));
+                }
+            }
         }
 
-        if let Some(length) = matches.value_of(ARG_LEN) {
-            truncate_len = length.parse::<u64>()?;
+        if let Some(length) = matches.get_one::<String>(ARG_LEN) {
+            truncate_len = match length.parse::<u64>() {
+                Ok(truncate_len) => truncate_len,
+                Err(e) => {
+                    eprintln!("-l, --len <integer> expected. {:?}", e);
+                    return Err(Box::new(e));
+                }
+            }
         }
 
-        if let Some(format) = matches.value_of(ARG_FMT) {
+        if let Some(format) = matches.get_one::<String>(ARG_FMT) {
             // o, x, X, p, b, e, E
-            match format {
+            match format.as_str() {
                 "o" => format_out = Format::Octal,
                 "x" => format_out = Format::LowerHex,
                 "X" => format_out = Format::UpperHex,
@@ -305,13 +323,12 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             colorize = false;
         }
 
-        if let Some(color) = matches.value_of(ARG_CLR) {
-            let color_v = color.parse::<u8>().unwrap();
-            colorize = color_v == 1;
+        if let Some(color) = matches.get_one::<String>(ARG_CLR) {
+            colorize = color.parse::<u8>().unwrap() == 1;
         }
 
         // array output mode is mutually exclusive
-        if let Some(array) = matches.value_of(ARG_ARR) {
+        if let Some(array) = matches.get_one::<String>(ARG_ARR) {
             output_array(array, buf, truncate_len, column_width)?;
         } else {
             // Transforms this Read instance to an Iterator over its bytes.
@@ -368,10 +385,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 #[allow(clippy::absurd_extreme_comparisons)]
 pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
     let mut is_stdin = false;
-    if DBG > 0 {
-        dbg!(env::args().len(), matches.args.len());
-    }
-    if let Some(file) = matches.value_of(ARG_INP) {
+    if let Some(file) = matches.get_one::<String>(ARG_INP) {
         if DBG > 0 {
             dbg!(file);
         }
@@ -381,7 +395,7 @@ pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
             dbg!(nth1);
         }
         is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
-    } else if matches.args.is_empty() {
+    } else if !matches.args_present() {
         is_stdin = true;
     }
     if DBG > 0 {

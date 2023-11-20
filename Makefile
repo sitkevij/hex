@@ -77,9 +77,6 @@ install: release debug test
 install-force: clean release debug test
 	cargo install --path . --force
 
-clippy:
-	cargo clippy
-
 docker-build:
 	docker build -t sitkevij/hx:latest .
 
@@ -99,6 +96,22 @@ manpage:
 	pandoc --standalone --to man MANPAGE.md -o hx.1
 	cp hx.1 /usr/local/share/man/man1
 	man hx
+
+lint: lint-clippy lint-format lint-markdown lint-spell
+
+lint-clippy:
+	cargo clippy --workspace --all-targets --verbose
+	cargo clippy --workspace --all-targets --verbose --no-default-features
+	cargo clippy --workspace --all-targets --verbose --all-features
+
+lint-format:
+	cargo fmt --all -- --check
+
+lint-markdown:
+	markdownlint-cli2 --config .markdownlint.json *.md
+
+lint-spell:
+	codespell -L crate -w src/*.rs *.md tests/*.rs *.toml
 
 clean: ## Remove all artifacts
 	rm -rf $(DEBUG_DIR)

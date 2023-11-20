@@ -1,0 +1,5 @@
+[hooks]
+pre-commit = "cargo fmt --all --verbose && markdownlint-cli2 --config .markdownlint.json *.md && codespell -L crate -w src/*.rs *.md tests/*.rs *.toml && cargo test && cargo clippy"
+
+[logging]
+verbose = true
