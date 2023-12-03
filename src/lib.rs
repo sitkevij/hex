@@ -534,32 +534,56 @@ mod tests {
     #[test]
     pub fn test_hex_octal() {
         let b: u8 = 0x6;
+
+        //with prefix
         assert_eq!(Format::Octal.format(b, true), "0o0006");
         assert_eq!(Format::Octal.format(b, true), format!("{:#06o}", b));
+
+        //without prefix
+        assert_eq!(Format::Octal.format(b, false), "0006");
+        assert_eq!(Format::Octal.format(b, false), format!("{:04o}", b));
     }
 
     /// hex lower hex, takes u8
     #[test]
     fn test_hex_lower_hex() {
         let b: u8 = <u8>::max_value(); // 255
+
+        //with prefix
         assert_eq!(Format::LowerHex.format(b, true), "0xff");
         assert_eq!(Format::LowerHex.format(b, true), format!("{:#04x}", b));
+
+        //without prefix
+        assert_eq!(Format::LowerHex.format(b, false), "ff");
+        assert_eq!(Format::LowerHex.format(b, false), format!("{:02x}", b));
     }
 
     /// hex upper hex, takes u8
     #[test]
     fn test_hex_upper_hex() {
         let b: u8 = <u8>::max_value();
+
+        //with prefix
         assert_eq!(Format::UpperHex.format(b, true), "0xFF");
         assert_eq!(Format::UpperHex.format(b, true), format!("{:#04X}", b));
+
+        // without prefix
+        assert_eq!(Format::UpperHex.format(b, false), "FF");
+        assert_eq!(Format::UpperHex.format(b, false), format!("{:02X}", b));
     }
 
     /// hex binary, takes u8
     #[test]
     fn test_hex_binary() {
         let b: u8 = <u8>::max_value();
+
+        // with prefix
         assert_eq!(Format::Binary.format(b, true), "0b11111111");
         assert_eq!(Format::Binary.format(b, true), format!("{:#010b}", b));
+
+        // without prefix
+        assert_eq!(Format::Binary.format(b, false), "11111111");
+        assert_eq!(Format::Binary.format(b, false), format!("{:08b}", b));
     }
 
     #[test]
