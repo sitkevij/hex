@@ -1,0 +1,29 @@
+name: stale
+on:
+  schedule:
+    - cron: "30 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+  discussions: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          stale-issue-message: "This issue has been marked stale due to no recent activity."
+          stale-pr-message: "This PR has been marked stale due to no recent activity."
+          close-issue-message: "This issue was closed due to no activity for an extended period."
+          close-pr-message: "This PR was closed due to no activity for an extended period."
+          days-before-issue-stale: 30
+          days-before-pr-stale: 45
+          days-before-issue-close: 5
+          days-before-pr-close: 10
+      - uses: dessant/lock-threads@v5
+        with:
+          exclude-any-issue-labels: "help wanted, upstream, in progress"
+          process-only: "issues"
