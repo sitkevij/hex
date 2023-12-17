@@ -84,6 +84,15 @@ fn main() {
                 .value_name("func_places")
                 .help("Set function wave output decimal places")
                 .num_args(1)
+        )
+        .arg(
+            Arg::new(hx::ARG_PFX)
+                .action(clap::ArgAction::Set)
+                .short('r')
+                .long(hx::ARG_PFX)
+                .help("Include prefix in output (e.g. 0x/0b/0o). 0 to disable, 1 to enable")
+                .value_parser(["0", "1"])
+                .num_args(1)
         );
 
     let matches = app.get_matches();

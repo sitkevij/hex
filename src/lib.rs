@@ -41,9 +41,11 @@ pub const ARG_ARR: &str = "array";
 pub const ARG_FNC: &str = "func";
 /// arg places
 pub const ARG_PLC: &str = "places";
+/// arg prefix
+pub const ARG_PFX: &str = "prefix";
 
-const ARGS: [&str; 8] = [
-    ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC,
+const ARGS: [&str; 9] = [
+    ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC, ARG_PFX,
 ];
 
 const DBG: u8 = 0x0;
@@ -76,6 +78,36 @@ pub enum Format {
     UpperExp,
     /// unknown format
     Unknown,
+}
+
+impl Format {
+    /// Formats a given u8 according to the base Format
+    ///
+    /// # Arguments
+    ///
+    /// * `data` - The byte to be formatted
+    /// * `prefix` - whether or not to add a prefix
+    fn format(&self, data: u8, prefix: bool) -> String {
+        if prefix {
+            match &self {
+                Self::Octal => format!("{:#06o}", data),
+                Self::LowerHex => format!("{:#04x}", data),
+                Self::UpperHex => format!("{:#04X}", data),
+                Self::Binary => format!("{:#010b}", data),
+                _ => panic!("format is not implemented for this Format"),
+            }
+            .to_string()
+        } else {
+            match &self {
+                Self::Octal => format!("{:04o}", data),
+                Self::LowerHex => format!("{:02x}", data),
+                Self::UpperHex => format!("{:02X}", data),
+                Self::Binary => format!("{:08b}", data),
+                _ => panic!("format is not implemented for this Format"),
+            }
+            .to_string()
+        }
+    }
 }
 
 /// Line structure for hex output
@@ -140,70 +172,27 @@ pub fn print_offset(w: &mut impl Write, b: u64) -> io::Result<()> {
     write!(w, "{}: ", offset(b))
 }
 
-/// hex octal, takes u8
-pub fn hex_octal(b: u8) -> String {
-    format!("{:#06o}", b)
-}
-
-/// hex lower hex, takes u8
-pub fn hex_lower_hex(b: u8) -> String {
-    format!("{:#04x}", b)
-}
-
-/// hex upper hex, takes u8
-pub fn hex_upper_hex(b: u8) -> String {
-    format!("{:#04X}", b)
-}
-
-/// hex binary, takes u8
-pub fn hex_binary(b: u8) -> String {
-    format!("{:#010b}", b)
-}
-
 /// print byte to std out
-pub fn print_byte(w: &mut impl Write, b: u8, format: Format, colorize: bool) -> io::Result<()> {
+pub fn print_byte(
+    w: &mut impl Write,
+    b: u8,
+    format: Format,
+    colorize: bool,
+    prefix: bool,
+) -> io::Result<()> {
+    let fmt_string = format.format(b, prefix);
     if colorize {
         // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
         let color = byte_to_color(b);
-        match format {
-            Format::Octal => write!(
-                w,
-                "{} ",
-                ansi_term::Style::new()
-                    .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_octal(b))
-            ),
-            Format::LowerHex => write!(
-                w,
-                "{} ",
-                ansi_term::Style::new()
-                    .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_lower_hex(b))
-            ),
-            Format::UpperHex => write!(
-                w,
-                "{} ",
-                ansi_term::Style::new()
-                    .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_upper_hex(b))
-            ),
-            Format::Binary => write!(
-                w,
-                "{} ",
-                ansi_term::Style::new()
-                    .fg(ansi_term::Color::Fixed(color))
-                    .paint(hex_binary(b))
-            ),
-            _ => write!(w, "unk_fmt "),
-        }
+        write!(
+            w,
+            "{} ",
+            ansi_term::Style::new()
+                .fg(ansi_term::Color::Fixed(color))
+                .paint(fmt_string)
+        )
     } else {
-        match format {
-            Format::Octal => write!(w, "{} ", hex_octal(b)),
-            Format::LowerHex => write!(w, "{} ", hex_lower_hex(b)),
-            Format::UpperHex => write!(w, "{} ", hex_upper_hex(b)),
-            Format::Binary => write!(w, "{} ", hex_binary(b)),
-            _ => write!(w, "unk_fmt "),
-        }
+        write!(w, "{} ", fmt_string)
     }
 }
 
@@ -275,6 +264,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
+        let mut prefix = true;
 
         if let Some(columns) = matches.get_one::<String>(ARG_COL) {
             column_width = match columns.parse::<u64>() {
@@ -327,6 +317,10 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
             colorize = color.parse::<u8>().unwrap() == 1;
         }
 
+        if let Some(prefix_flag) = matches.get_one::<String>(ARG_PFX) {
+            prefix = prefix_flag.parse::<u8>().unwrap() == 1;
+        }
+
         // array output mode is mutually exclusive
         if let Some(array) = matches.get_one::<String>(ARG_ARR) {
             output_array(array, buf, truncate_len, column_width)?;
@@ -351,7 +345,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                 for hex in line.hex_body.iter() {
                     offset_counter += 1;
                     byte_column += 1;
-                    print_byte(&mut locked, *hex, format_out, colorize)?;
+                    print_byte(&mut locked, *hex, format_out, colorize, prefix)?;
                     append_ascii(&mut ascii_line.ascii, *hex, colorize);
                 }
 
@@ -439,14 +433,14 @@ pub fn output_array(
             i += 1;
             if i == page.bytes && array_format != "g" {
                 if array_format != "f" {
-                    write!(locked, "{}", hex_lower_hex(*hex))?;
+                    write!(locked, "{}", Format::LowerHex.format(*hex, true))?;
                 } else {
-                    write!(locked, "{}uy", hex_lower_hex(*hex))?;
+                    write!(locked, "{}uy", Format::LowerHex.format(*hex, true))?;
                 }
             } else if array_format != "f" {
-                write!(locked, "{}, ", hex_lower_hex(*hex))?;
+                write!(locked, "{}, ", Format::LowerHex.format(*hex, true))?;
             } else {
-                write!(locked, "{}uy; ", hex_lower_hex(*hex))?;
+                write!(locked, "{}uy; ", Format::LowerHex.format(*hex, true))?;
             }
         }
         writeln!(locked)?;
@@ -540,32 +534,56 @@ mod tests {
     #[test]
     pub fn test_hex_octal() {
         let b: u8 = 0x6;
-        assert_eq!(hex_octal(b), "0o0006");
-        assert_eq!(hex_octal(b), format!("{:#06o}", b));
+
+        //with prefix
+        assert_eq!(Format::Octal.format(b, true), "0o0006");
+        assert_eq!(Format::Octal.format(b, true), format!("{:#06o}", b));
+
+        //without prefix
+        assert_eq!(Format::Octal.format(b, false), "0006");
+        assert_eq!(Format::Octal.format(b, false), format!("{:04o}", b));
     }
 
     /// hex lower hex, takes u8
     #[test]
     fn test_hex_lower_hex() {
         let b: u8 = <u8>::max_value(); // 255
-        assert_eq!(hex_lower_hex(b), "0xff");
-        assert_eq!(hex_lower_hex(b), format!("{:#04x}", b));
+
+        //with prefix
+        assert_eq!(Format::LowerHex.format(b, true), "0xff");
+        assert_eq!(Format::LowerHex.format(b, true), format!("{:#04x}", b));
+
+        //without prefix
+        assert_eq!(Format::LowerHex.format(b, false), "ff");
+        assert_eq!(Format::LowerHex.format(b, false), format!("{:02x}", b));
     }
 
     /// hex upper hex, takes u8
     #[test]
     fn test_hex_upper_hex() {
         let b: u8 = <u8>::max_value();
-        assert_eq!(hex_upper_hex(b), "0xFF");
-        assert_eq!(hex_upper_hex(b), format!("{:#04X}", b));
+
+        //with prefix
+        assert_eq!(Format::UpperHex.format(b, true), "0xFF");
+        assert_eq!(Format::UpperHex.format(b, true), format!("{:#04X}", b));
+
+        // without prefix
+        assert_eq!(Format::UpperHex.format(b, false), "FF");
+        assert_eq!(Format::UpperHex.format(b, false), format!("{:02X}", b));
     }
 
     /// hex binary, takes u8
     #[test]
     fn test_hex_binary() {
         let b: u8 = <u8>::max_value();
-        assert_eq!(hex_binary(b), "0b11111111");
-        assert_eq!(hex_binary(b), format!("{:#010b}", b));
+
+        // with prefix
+        assert_eq!(Format::Binary.format(b, true), "0b11111111");
+        assert_eq!(Format::Binary.format(b, true), format!("{:#010b}", b));
+
+        // without prefix
+        assert_eq!(Format::Binary.format(b, false), "11111111");
+        assert_eq!(Format::Binary.format(b, false), format!("{:08b}", b));
     }
 
     #[test]
