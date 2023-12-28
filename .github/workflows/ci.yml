@@ -19,25 +19,50 @@ env:
 
 jobs:
   test:
-    name: Test Rust ${{ matrix.rust }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Test Rust ${{ matrix.name }} on ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
-      fail-fast: false
       matrix:
         include:
-          - { rust: stable, os: ubuntu-latest, experimental: false }
-          - { rust: stable, os: macos-latest, experimental: false }
-          - { rust: stable, os: windows-latest, experimental: true }
-          - { rust: stable-i686-msvc, os: windows-latest, experimental: true }
-          - { rust: beta, os: ubuntu-latest, experimental: true }
-          - { rust: nightly, os: ubuntu-latest, experimental: true }
+          - name: linux-amd64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            experimental: false
+            toolchain: stable
+          - name: win-amd64
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            experimental: false
+            toolchain: stable
+          - name: macos-amd64
+            runner: macos-latest
+            target: x86_64-apple-darwin
+            experimental: false
+            toolchain: stable
+          - name: macos-arm64
+            runner: macos-latest
+            target: aarch64-apple-darwin
+            experimental: false
+            toolchain: stable
+          - name: linux-amd64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            experimental: true
+            toolchain: beta
+          - name: linux-amd64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            experimental: true
+            toolchain: nightly
     steps:
-      - uses: actions/checkout@v4
-      - uses: hecrj/setup-rust-action@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
-          rust-version: ${{ matrix.rust }}
-
+          toolchain: "${{ matrix.toolchain }}"
+          targets: "${{ matrix.target }}"
       - run: cargo build --verbose --all
       - run: cargo build --release
       - run: cargo test --verbose --all -- --nocapture
@@ -55,7 +80,7 @@ jobs:
       RUSTFLAGS: -Dwarnings
     steps:
       - uses: actions/checkout@v4
-      - uses: hecrj/setup-rust-action@v2
+      - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - run: cargo clippy --workspace --all-targets --verbose
@@ -67,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: hecrj/setup-rust-action@v2
+      - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
       - run: cargo fmt --all -- --check

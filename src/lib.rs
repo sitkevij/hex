@@ -15,7 +15,6 @@
 extern crate ansi_term;
 extern crate clap;
 
-use atty::Stream;
 use clap::ArgMatches;
 use no_color::is_no_color;
 use std::env;
@@ -23,6 +22,7 @@ use std::error::Error;
 use std::f64;
 use std::fs;
 use std::io::BufReader;
+use std::io::IsTerminal;
 use std::io::{self, BufRead, Read, Write};
 
 /// arg cols
@@ -309,7 +309,7 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         // prevent term color codes being sent to stdout
         // test: cat Cargo.toml | target/debug/hx | more
         // override via ARG_CLR below
-        if !atty::is(Stream::Stdout) {
+        if !io::stdout().is_terminal() {
             colorize = false;
         }
 
