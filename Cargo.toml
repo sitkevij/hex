@@ -4,11 +4,11 @@ categories = ["command-line-utilities", "development-tools"]
 description = "Futuristic take on hexdump, made in Rust."
 repository = "https://github.com/sitkevij/hex"
 keywords = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
-include = ["src/**/*", "Cargo.toml", "Cargo.lock", "README.md", "hx.1"]
+include = ["src/**/*", "Cargo.toml", "Cargo.lock", "README.md", "hx.1", "tests/**/*"]
 license = "MIT"
 name = "hx"
 readme = "README.md"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 
 # see https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -26,11 +26,10 @@ panic = 'unwind' # panic strategy (`-C panic=...`), can also be 'abort'
 opt-level = 3
 
 [dependencies]
-clap = "4.4.8"
+clap = "4.4"
 ansi_term = "0.12"
-atty = "0.2"
 no_color = "0.1"
 
 [dev-dependencies]
-assert_cmd = "2.0.12"
-rusty-hook = "^0.11.2"
+assert_cmd = "2.0"
+rusty-hook = "^0.11"

@@ -109,8 +109,11 @@ pacman -S hex
 
 ### debian install
 
+Browse https://github.com/sitkevij/hex/releases/latest to choose `VERSION` for use with this debian
+installation example:
+
 ```sh
-curl -sLO https://github.com/sitkevij/hex/releases/download/v0.4.2/hx_0.4.2_amd64.deb && dpkg -i hx_0.4.2_amd64.deb
+VERSION=0.6.0 && curl -sLO "https://github.com/sitkevij/hex/releases/download/v$VERSION/hx_$VERSION-1_amd64.deb" && dpkg -i "hx_$VERSION-1_amd64.deb"
 ```
 
 ### guix install
