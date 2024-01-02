@@ -7,11 +7,15 @@ on:
 
 jobs:
   build:
-    runs-on: rust-latest
+    name: Debian Release
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - run: | # Since v2.0.0 the deb package version will have a "-1" suffix. You can disable this by adding --deb-revision="" flag or revision = "" in Cargo metadata. The default suffix is for compliance with Debian's packaging standard.
+      - name: Cargo Install Run
+        uses: dtolnay/rust-toolchain@stable
+      - run: |
+          # Since v2.0.0 the deb package version will have a "-1" suffix. You can disable this by adding --deb-revision="" flag or revision = "" in Cargo metadata. The default suffix is for compliance with Debian's packaging standard.
           cargo install cargo-deb
           cargo deb
       - name: Release
