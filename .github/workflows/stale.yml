@@ -21,8 +21,8 @@ jobs:
           stale-pr-message: "PR marked stale due to no recent activity."
           stale-pr-label: "stale"
           exempt-pr-labels: "enhancement, help wanted, in progress, upstream"
-          close-issue-message: "Issue closed due to no recent activity for an extended period."
-          close-pr-message: "PR closed due to no recent activity for an extended period."
+          close-issue-message: "Issue closed due to lack of activity for an extended period."
+          close-pr-message: "PR closed due to lack of activity for an extended period."
           days-before-issue-stale: 30
           days-before-pr-stale: 45
           days-before-issue-close: 5
