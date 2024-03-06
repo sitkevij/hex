@@ -368,7 +368,8 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                         locked,
                         "{:<1$}",
                         "",
-                        (format_out.get_padding_width(prefix) + 1) * (column_width - byte_column) as usize
+                        (format_out.get_padding_width(prefix) + 1)
+                            * (column_width - byte_column) as usize
                     )?;
                 }
 
@@ -507,7 +508,7 @@ pub fn buf_to_array(
     buf: &mut dyn Read,
     buf_len: u64,
     column_width: u64,
-) -> Result<Page, Box<dyn ::std::error::Error>> {
+) -> Result<Page, Box<dyn Error>> {
     let mut column_count: u64 = 0x0;
     let max_array_size: u16 = <u16>::max_value(); // 2^16;
     let mut page: Page = Page::new();
