@@ -116,15 +116,10 @@ pub fn print_byte(
     if colorize {
         // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
         let color = byte_to_color(b);
-        write!(
-            w,
-            "{} ",
-            ansi_term::Style::new()
-                .fg(ansi_term::Color::Fixed(color))
-                .paint(fmt_string)
-        )
+        let string = ansi_term::Style::new().fg(color).paint(fmt_string);
+        write!(w, "{string} ",)
     } else {
-        write!(w, "{} ", fmt_string)
+        write!(w, "{fmt_string} ")
     }
 }
 
@@ -147,11 +142,9 @@ pub fn append_ascii(target: &mut Vec<u8>, b: u8, colorize: bool) {
 
     if colorize {
         let string = ansi_term::Style::new()
-            .fg(ansi_term::Color::Fixed(byte_to_color(b)))
-            .paint(char.to_string());
-        target.extend(format!("{}", string).as_bytes());
+        target.extend(format!("{string}").as_bytes());
     } else {
-        target.extend(format!("{}", char).as_bytes());
+        target.extend(format!("{char}").as_bytes());
     }
 }
 
