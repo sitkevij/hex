@@ -135,16 +135,19 @@ pub fn byte_to_color(b: u8) -> Color {
 
 /// append char representation of a byte to a buffer
 pub fn append_ascii(target: &mut Vec<u8>, b: u8, colorize: bool) {
-    let char = match b > 31 && b < 127 {
+    let chr = match b > 31 && b < 127 {
         true => b as char,
         false => '.',
     };
 
     if colorize {
         let string = ansi_term::Style::new()
+            .fg(byte_to_color(b))
+            .paint(chr.to_string());
+
         target.extend(format!("{string}").as_bytes());
     } else {
-        target.extend(format!("{char}").as_bytes());
+        target.extend(format!("{chr}").as_bytes());
     }
 }
 
