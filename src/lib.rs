@@ -48,7 +48,7 @@ const ARGS: [&str; 9] = [
     ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC, ARG_PFX,
 ];
 
-const DBG: u8 = 0x0;
+const DBG: bool = false;
 
 /// nothing ⇒ Display
 /// ? ⇒ Debug
@@ -380,19 +380,19 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
     let mut is_stdin = false;
     if let Some(file) = matches.get_one::<String>(ARG_INP) {
-        if DBG > 0 {
+        if DBG {
             dbg!(file);
         }
         is_stdin = false;
     } else if let Some(nth1) = env::args().nth(1) {
-        if DBG > 0 {
+        if DBG {
             dbg!(nth1);
         }
         is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
     } else if !matches.args_present() {
         is_stdin = true;
     }
-    if DBG > 0 {
+    if DBG {
         dbg!(is_stdin);
     }
     Ok(is_stdin)
