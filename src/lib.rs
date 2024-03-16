@@ -399,9 +399,9 @@ pub fn output_array(
 /// * `places` - Number of decimal places for function wave floats.
 pub fn output_function(len: u64, places: usize) {
     for y in 0..len {
-        let y_float: f64 = y as f64;
-        let len_float: f64 = len as f64;
-        let x: f64 = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
+        let y_float = y as f64;
+        let len_float = len as f64;
+        let x = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
         let formatted_number = format!("{:.*}", places, x);
         print!("{}", formatted_number);
         print!(",");
