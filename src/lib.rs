@@ -1,20 +1,12 @@
-#![deny(
-    dead_code,
-    missing_docs,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications
-)]
-
 //! general hex lib
-extern crate ansi_term;
-extern crate clap;
 
+#[cfg(test)]
+mod tests;
+
+mod format;
+use crate::format::Format;
+
+use ansi_term::Color;
 use clap::ArgMatches;
 use no_color::is_no_color;
 use std::env;
@@ -50,66 +42,6 @@ const ARGS: [&str; 9] = [
 
 const DBG: u8 = 0x0;
 
-/// nothing ⇒ Display
-/// ? ⇒ Debug
-/// o ⇒ Octal
-/// x ⇒ LowerHex
-/// X ⇒ UpperHex
-/// p ⇒ Pointer
-/// b ⇒ Binary
-/// e ⇒ LowerExp
-/// E ⇒ UpperExp
-/// evaluate for traits implementation
-#[derive(Copy, Clone, Debug)]
-pub enum Format {
-    /// octal format
-    Octal,
-    /// lower hex format
-    LowerHex,
-    /// upper hex format
-    UpperHex,
-    /// pointer format
-    Pointer,
-    /// binary format
-    Binary,
-    /// lower exp format
-    LowerExp,
-    /// upper exp format
-    UpperExp,
-    /// unknown format
-    Unknown,
-}
-
-impl Format {
-    /// Formats a given u8 according to the base Format
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The byte to be formatted
-    /// * `prefix` - whether or not to add a prefix
-    fn format(&self, data: u8, prefix: bool) -> String {
-        if prefix {
-            match &self {
-                Self::Octal => format!("{:#06o}", data),
-                Self::LowerHex => format!("{:#04x}", data),
-                Self::UpperHex => format!("{:#04X}", data),
-                Self::Binary => format!("{:#010b}", data),
-                _ => panic!("format is not implemented for this Format"),
-            }
-            .to_string()
-        } else {
-            match &self {
-                Self::Octal => format!("{:04o}", data),
-                Self::LowerHex => format!("{:02x}", data),
-                Self::UpperHex => format!("{:02X}", data),
-                Self::Binary => format!("{:08b}", data),
-                _ => panic!("format is not implemented for this Format"),
-            }
-            .to_string()
-        }
-    }
-}
-
 /// Line structure for hex output
 #[derive(Clone, Debug, Default)]
 pub struct Line {
@@ -122,6 +54,7 @@ pub struct Line {
     /// total bytes in Line
     pub bytes: u64,
 }
+
 /// Line implementation
 impl Line {
     /// Line constructor
@@ -184,41 +117,38 @@ pub fn print_byte(
     if colorize {
         // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
         let color = byte_to_color(b);
-        write!(
-            w,
-            "{} ",
-            ansi_term::Style::new()
-                .fg(ansi_term::Color::Fixed(color))
-                .paint(fmt_string)
-        )
+        let string = ansi_term::Style::new().fg(color).paint(fmt_string);
+        write!(w, "{string} ",)
     } else {
-        write!(w, "{} ", fmt_string)
+        write!(w, "{fmt_string} ")
     }
 }
 
 /// get the color for a specific byte
-pub fn byte_to_color(b: u8) -> u8 {
-    let mut color: u8 = b;
-    if color < 1 {
-        color = 0x16;
-    }
-    color
+pub fn byte_to_color(b: u8) -> Color {
+    let color = match b {
+        0 => 0x16,
+        _ => b,
+    };
+
+    ansi_term::Color::Fixed(color)
 }
 
 /// append char representation of a byte to a buffer
 pub fn append_ascii(target: &mut Vec<u8>, b: u8, colorize: bool) {
-    let char = match b > 31 && b < 127 {
+    let chr = match b > 31 && b < 127 {
         true => b as char,
         false => '.',
     };
 
     if colorize {
         let string = ansi_term::Style::new()
-            .fg(ansi_term::Color::Fixed(byte_to_color(b)))
-            .paint(char.to_string());
-        target.extend(format!("{}", string).as_bytes());
+            .fg(byte_to_color(b))
+            .paint(chr.to_string());
+
+        target.extend(format!("{string}").as_bytes());
     } else {
-        target.extend(format!("{}", char).as_bytes());
+        target.extend(format!("{chr}").as_bytes());
     }
 }
 
@@ -469,9 +399,9 @@ pub fn output_array(
 /// * `places` - Number of decimal places for function wave floats.
 pub fn output_function(len: u64, places: usize) {
     for y in 0..len {
-        let y_float: f64 = y as f64;
-        let len_float: f64 = len as f64;
-        let x: f64 = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
+        let y_float = y as f64;
+        let len_float = len as f64;
+        let x = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
         let formatted_number = format!("{:.*}", places, x);
         print!("{}", formatted_number);
         print!(",");
@@ -494,8 +424,8 @@ pub fn buf_to_array(
     buf_len: u64,
     column_width: u64,
 ) -> Result<Page, Box<dyn ::std::error::Error>> {
-    let mut column_count: u64 = 0x0;
-    let max_array_size: u16 = <u16>::max_value(); // 2^16;
+    let mut column_count = 0u64;
+    let max_array_size = u16::MAX; // 2^16;
     let mut page: Page = Page::new();
     let mut line: Line = Line::new();
     for b in buf.bytes() {
@@ -517,134 +447,4 @@ pub fn buf_to_array(
     }
     page.body.push(line);
     Ok(page)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    /// @see (https://users.rust-lang.org/t/how-to-test-output-to-stdout/4877/6)
-    #[test]
-    fn test_offset() {
-        let b: u64 = 0x6;
-        assert_eq!(offset(b), "0x000006");
-        assert_eq!(offset(b), format!("{:#08x}", b));
-    }
-
-    /// hex octal, takes u8
-    #[test]
-    pub fn test_hex_octal() {
-        let b: u8 = 0x6;
-
-        //with prefix
-        assert_eq!(Format::Octal.format(b, true), "0o0006");
-        assert_eq!(Format::Octal.format(b, true), format!("{:#06o}", b));
-
-        //without prefix
-        assert_eq!(Format::Octal.format(b, false), "0006");
-        assert_eq!(Format::Octal.format(b, false), format!("{:04o}", b));
-    }
-
-    /// hex lower hex, takes u8
-    #[test]
-    fn test_hex_lower_hex() {
-        let b: u8 = <u8>::max_value(); // 255
-
-        //with prefix
-        assert_eq!(Format::LowerHex.format(b, true), "0xff");
-        assert_eq!(Format::LowerHex.format(b, true), format!("{:#04x}", b));
-
-        //without prefix
-        assert_eq!(Format::LowerHex.format(b, false), "ff");
-        assert_eq!(Format::LowerHex.format(b, false), format!("{:02x}", b));
-    }
-
-    /// hex upper hex, takes u8
-    #[test]
-    fn test_hex_upper_hex() {
-        let b: u8 = <u8>::max_value();
-
-        //with prefix
-        assert_eq!(Format::UpperHex.format(b, true), "0xFF");
-        assert_eq!(Format::UpperHex.format(b, true), format!("{:#04X}", b));
-
-        // without prefix
-        assert_eq!(Format::UpperHex.format(b, false), "FF");
-        assert_eq!(Format::UpperHex.format(b, false), format!("{:02X}", b));
-    }
-
-    /// hex binary, takes u8
-    #[test]
-    fn test_hex_binary() {
-        let b: u8 = <u8>::max_value();
-
-        // with prefix
-        assert_eq!(Format::Binary.format(b, true), "0b11111111");
-        assert_eq!(Format::Binary.format(b, true), format!("{:#010b}", b));
-
-        // without prefix
-        assert_eq!(Format::Binary.format(b, false), "11111111");
-        assert_eq!(Format::Binary.format(b, false), format!("{:08b}", b));
-    }
-
-    #[test]
-    fn test_line_struct() {
-        let mut ascii_line: Line = Line::new();
-        ascii_line.ascii.push(b'.');
-        assert_eq!(ascii_line.ascii[0], b'.');
-        assert_eq!(ascii_line.offset, 0x0);
-    }
-
-    use assert_cmd::Command;
-
-    /// target/debug/hx -ar tests/files/tiny.txt
-    /// assert may have unexpected results depending on terminal:
-    ///     .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
-    #[test]
-    fn test_cli_arg_order_1() {
-        let mut cmd = Command::cargo_bin("hx").unwrap();
-        let assert = cmd.arg("-ar").arg("tests/files/tiny.txt").assert();
-        assert.success().code(0);
-    }
-
-    /// target/debug/hx tests/files/tiny.txt -ar
-    /// assert may have unexpected results depending on terminal:
-    ///     .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
-    #[test]
-    fn test_cli_arg_order_2() {
-        let mut cmd = Command::cargo_bin("hx").unwrap();
-        let assert = cmd.arg("tests/files/tiny.txt").arg("-ar").assert();
-        assert.success().code(0);
-    }
-
-    /// target/debug/hx --len tests/files/tiny.txt
-    ///     error: invalid digit found in string
-    #[test]
-    fn test_cli_missing_param_value() {
-        let mut cmd = Command::cargo_bin("hx").unwrap();
-        let assert = cmd.arg("--len").arg("tests/files/tiny.txt").assert();
-        assert.failure().code(1);
-    }
-
-    #[test]
-    fn test_cli_input_missing_file() {
-        let mut cmd = Command::cargo_bin("hx").unwrap();
-        let assert = cmd.arg("missing-file").assert();
-        assert.failure().code(1);
-    }
-
-    #[test]
-    fn test_cli_input_directory() {
-        let mut cmd = Command::cargo_bin("hx").unwrap();
-        let assert = cmd.arg("src").assert();
-        assert.failure().code(1);
-    }
-
-    #[test]
-    fn test_cli_input_stdin() {
-        let mut cmd = Command::cargo_bin("hx").unwrap();
-        let assert = cmd.arg("-t0").write_stdin("012").assert();
-        assert.success().code(0).stdout(
-            "0x000000: 0x30 0x31 0x32                                    012\n   bytes: 3\n",
-        );
-    }
 }
