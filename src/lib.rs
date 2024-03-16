@@ -20,7 +20,7 @@ use no_color::is_no_color;
 use std::env;
 use std::error::Error;
 use std::f64;
-use std::fs;
+use std::fs::File;
 use std::io::BufReader;
 use std::io::IsTerminal;
 use std::io::{self, BufRead, Read, Write};
@@ -254,13 +254,13 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         //  $ cat Cargo.toml | target/debug/hx -a r
         //  $ target/debug/hx Cargo.toml
         //  $ target/debug/hx Cargo.toml -a r
-        let is_stdin = is_stdin(matches.clone());
-        let mut buf: Box<dyn BufRead> = if is_stdin.unwrap() {
-            Box::new(BufReader::new(io::stdin()))
-        } else {
-            Box::new(BufReader::new(fs::File::open(
-                matches.get_one::<String>(ARG_INP).unwrap(),
-            )?))
+        let mut buf: Box<dyn BufRead> = match is_stdin(&matches) {
+            true => Box::new(BufReader::new(io::stdin())),
+            false => {
+                let path = matches.get_one::<String>(ARG_INP).unwrap();
+                let file = File::open(path)?;
+                Box::new(BufReader::new(file))
+            }
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
@@ -377,25 +377,24 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
 ///
 /// * `matches` - argument matches.
 #[allow(clippy::absurd_extreme_comparisons)]
-pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
-    let mut is_stdin = false;
+pub fn is_stdin(matches: &ArgMatches) -> bool {
     if let Some(file) = matches.get_one::<String>(ARG_INP) {
         if DBG > 0 {
             dbg!(file);
         }
-        is_stdin = false;
+
+        return false;
     } else if let Some(nth1) = env::args().nth(1) {
         if DBG > 0 {
             dbg!(nth1);
         }
-        is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
+
+        return ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
     } else if !matches.args_present() {
-        is_stdin = true;
+        return true;
     }
-    if DBG > 0 {
-        dbg!(is_stdin);
-    }
-    Ok(is_stdin)
+
+    false
 }
 
 /// Output source code array format.
