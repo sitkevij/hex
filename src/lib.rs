@@ -425,7 +425,7 @@ pub fn buf_to_array(
     column_width: u64,
 ) -> Result<Page, Box<dyn ::std::error::Error>> {
     let mut column_count: u64 = 0x0;
-    let max_array_size: u16 = <u16>::max_value(); // 2^16;
+    let max_array_size = u16::MAX; // 2^16;
     let mut page: Page = Page::new();
     let mut line: Line = Line::new();
     for b in buf.bytes() {
