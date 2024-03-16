@@ -423,7 +423,7 @@ pub fn buf_to_array(
     buf_len: u64,
     column_width: u64,
 ) -> Result<Page, Box<dyn ::std::error::Error>> {
-    let mut column_count: u64 = 0x0;
+    let mut column_count = 0u64;
     let max_array_size = u16::MAX; // 2^16;
     let mut page: Page = Page::new();
     let mut line: Line = Line::new();
