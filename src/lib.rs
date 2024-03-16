@@ -6,6 +6,7 @@ mod tests;
 mod format;
 use crate::format::Format;
 
+use ansi_term::Color;
 use clap::ArgMatches;
 use no_color::is_no_color;
 use std::env;
@@ -128,11 +129,13 @@ pub fn print_byte(
 }
 
 /// get the color for a specific byte
-pub fn byte_to_color(b: u8) -> u8 {
-    match b {
+pub fn byte_to_color(b: u8) -> Color {
+    let color = match b {
         0 => 0x16,
-        _ => b
-    }
+        _ => b,
+    };
+
+    ansi_term::Color::Fixed(color)
 }
 
 /// append char representation of a byte to a buffer
