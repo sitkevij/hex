@@ -129,11 +129,10 @@ pub fn print_byte(
 
 /// get the color for a specific byte
 pub fn byte_to_color(b: u8) -> u8 {
-    let mut color: u8 = b;
-    if color < 1 {
-        color = 0x16;
+    match b {
+        0 => 0x16,
+        _ => b
     }
-    color
 }
 
 /// append char representation of a byte to a buffer
