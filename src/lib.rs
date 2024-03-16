@@ -54,6 +54,7 @@ pub struct Line {
     /// total bytes in Line
     pub bytes: u64,
 }
+
 /// Line implementation
 impl Line {
     /// Line constructor
