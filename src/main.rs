@@ -1,5 +1,3 @@
-extern crate clap;
-
 use clap::Arg;
 use clap::Command;
 use std::env;
