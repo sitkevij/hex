@@ -1,19 +1,4 @@
-#![deny(
-    dead_code,
-    missing_docs,
-    missing_debug_implementations,
-    missing_copy_implementations,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_import_braces,
-    unused_qualifications
-)]
-
 //! general hex lib
-extern crate ansi_term;
-extern crate clap;
 
 #[cfg(test)]
 mod tests;
