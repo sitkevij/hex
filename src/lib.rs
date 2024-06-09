@@ -108,6 +108,20 @@ impl Format {
             .to_string()
         }
     }
+
+    /// Gets the width of a single byte according to the format
+    ///
+    /// # Arguments
+    ///
+    /// * `prefix` - whether or not to add a prefix
+    fn get_padding_width(&self, prefix: bool) -> usize {
+        (match &self {
+            Self::Octal => 4,
+            Self::LowerHex | Self::UpperHex => 2,
+            Self::Binary => 8,
+            _ => panic!("get_padding_width is not implemented for this Format"),
+        }) + if prefix { 2 } else { 0 } // add two if prefix enabled
+    }
 }
 
 /// Line structure for hex output
@@ -354,7 +368,8 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                         locked,
                         "{:<1$}",
                         "",
-                        5 * (column_width - byte_column) as usize
+                        (format_out.get_padding_width(prefix) + 1)
+                            * (column_width - byte_column) as usize
                     )?;
                 }
 
@@ -493,7 +508,7 @@ pub fn buf_to_array(
     buf: &mut dyn Read,
     buf_len: u64,
     column_width: u64,
-) -> Result<Page, Box<dyn ::std::error::Error>> {
+) -> Result<Page, Box<dyn Error>> {
     let mut column_count: u64 = 0x0;
     let max_array_size: u16 = <u16>::max_value(); // 2^16;
     let mut page: Page = Page::new();
@@ -645,6 +660,15 @@ mod tests {
         let assert = cmd.arg("-t0").write_stdin("012").assert();
         assert.success().code(0).stdout(
             "0x000000: 0x30 0x31 0x32                                    012\n   bytes: 3\n",
+        );
+    }
+
+    #[test]
+    fn test_cli_padding_check() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("-t0").arg("-r0").arg("-c6").write_stdin("abcdefgh\n").assert();
+        assert.success().code(0).stdout(
+            "0x000000: 61 62 63 64 65 66 abcdef\n0x000006: 67 68 0a          gh.\n   bytes: 9\n",
         );
     }
 }
