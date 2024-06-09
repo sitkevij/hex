@@ -119,7 +119,7 @@ impl Format {
             Self::Octal => 4,
             Self::LowerHex | Self::UpperHex => 2,
             Self::Binary => 8,
-            _ => panic!("format is not implemented for this Format"),
+            _ => panic!("get_padding_width is not implemented for this Format"),
         }) + if prefix { 2 } else { 0 } // add two if prefix enabled
     }
 }
@@ -660,6 +660,15 @@ mod tests {
         let assert = cmd.arg("-t0").write_stdin("012").assert();
         assert.success().code(0).stdout(
             "0x000000: 0x30 0x31 0x32                                    012\n   bytes: 3\n",
+        );
+    }
+
+    #[test]
+    fn test_cli_padding_check() {
+        let mut cmd = Command::cargo_bin("hx").unwrap();
+        let assert = cmd.arg("-t0").arg("-r0").arg("-c6").write_stdin("abcdefgh\n").assert();
+        assert.success().code(0).stdout(
+            "0x000000: 61 62 63 64 65 66 abcdef\n0x000006: 67 68 0a          gh.\n   bytes: 9\n",
         );
     }
 }
