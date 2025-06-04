@@ -4,12 +4,19 @@ categories = ["command-line-utilities", "development-tools"]
 description = "Futuristic take on hexdump, made in Rust."
 repository = "https://github.com/sitkevij/hex"
 keywords = ["hexdump", "hexadecimal", "tools", "ascii", "hex"]
-include = ["src/**/*", "Cargo.toml", "Cargo.lock", "README.md", "hx.1", "tests/**/*"]
+include = [
+    "src/**/*",
+    "Cargo.toml",
+    "Cargo.lock",
+    "README.md",
+    "hx.1",
+    "tests/**/*",
+]
 license = "MIT"
 name = "hx"
 readme = "README.md"
-version = "0.6.0"
-edition = "2021"
+version = "0.7.0"
+edition = "2024"
 
 # see https://doc.rust-lang.org/cargo/reference/manifest.html
 

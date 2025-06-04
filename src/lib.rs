@@ -495,7 +495,7 @@ pub fn buf_to_array(
     column_width: u64,
 ) -> Result<Page, Box<dyn ::std::error::Error>> {
     let mut column_count: u64 = 0x0;
-    let max_array_size: u16 = <u16>::max_value(); // 2^16;
+    let max_array_size: u16 = <u16>::MAX; // 2^16;
     let mut page: Page = Page::new();
     let mut line: Line = Line::new();
     for b in buf.bytes() {
@@ -547,7 +547,7 @@ mod tests {
     /// hex lower hex, takes u8
     #[test]
     fn test_hex_lower_hex() {
-        let b: u8 = <u8>::max_value(); // 255
+        let b: u8 = u8::MAX; // 255
 
         //with prefix
         assert_eq!(Format::LowerHex.format(b, true), "0xff");
@@ -561,7 +561,7 @@ mod tests {
     /// hex upper hex, takes u8
     #[test]
     fn test_hex_upper_hex() {
-        let b: u8 = <u8>::max_value();
+        let b: u8 = <u8>::MAX;
 
         //with prefix
         assert_eq!(Format::UpperHex.format(b, true), "0xFF");
@@ -575,7 +575,7 @@ mod tests {
     /// hex binary, takes u8
     #[test]
     fn test_hex_binary() {
-        let b: u8 = <u8>::max_value();
+        let b: u8 = <u8>::MAX;
 
         // with prefix
         assert_eq!(Format::Binary.format(b, true), "0b11111111");
