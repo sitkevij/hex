@@ -23,6 +23,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: linux-amd64
@@ -30,19 +31,34 @@ jobs:
             target: x86_64-unknown-linux-gnu
             experimental: false
             toolchain: stable
+          - name: linux-arm64
+            runner: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            experimental: false
+            toolchain: stable
+          - name: linux-i686
+            runner: ubuntu-latest
+            target: i686-unknown-linux-gnu
+            experimental: false
+            toolchain: stable
           - name: win-amd64
             runner: windows-latest
             target: x86_64-pc-windows-msvc
             experimental: false
             toolchain: stable
-          - name: macos-amd64
-            runner: macos-latest
-            target: x86_64-apple-darwin
+          - name: win-i686
+            runner: windows-latest
+            target: i686-pc-windows-msvc
             experimental: false
             toolchain: stable
           - name: macos-arm64
             runner: macos-latest
             target: aarch64-apple-darwin
+            experimental: false
+            toolchain: stable
+          - name: macos-amd64
+            runner: macos-latest
+            target: x86_64-apple-darwin
             experimental: false
             toolchain: stable
           - name: linux-amd64
@@ -58,20 +74,43 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-${{ matrix.target }}-
+            ${{ runner.os }}-cargo-
       - name: Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "${{ matrix.toolchain }}"
           targets: "${{ matrix.target }}"
-      - run: cargo build --verbose --all
-      - run: cargo build --release
-      - run: cargo test --verbose --all -- --nocapture
-      - run: cargo install hyperfine
-      - run: echo "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." | target/release/hx
-      - run: hyperfine -i --warmup 20 "echo 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.' | target/release/hx"
-      # - run: cargo test --verbose --workspace --all-features
-      # - run: cargo test --verbose --workspace --no-default-features
-      # see https://github.com/actions/upload-release-asset
+      - name: Build (debug)
+        run: cargo build --verbose --all
+      - name: Build (release)
+        run: cargo build --release
+      - name: Run unit tests
+        shell: sh
+        run: cargo test --lib --verbose -- --nocapture
+      - name: Run integration tests
+        shell: sh
+        run: cargo test --tests --verbose -- --nocapture
+      - name: Run doctests
+        shell: sh
+        run: cargo test --doc --verbose
+      - name: Run all tests (unit, integration, and doctests)
+        shell: sh
+        run: cargo test --verbose --all -- --nocapture
+      - name: Run release profile tests
+        shell: sh
+        run: cargo test --release --all -- --nocapture
 
   clippy:
     name: Lint with clippy
@@ -79,29 +118,54 @@ jobs:
     env:
       RUSTFLAGS: -Dwarnings
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ubuntu-cargo-clippy-
+            ubuntu-cargo-
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - run: cargo clippy --workspace --all-targets --verbose
-      - run: cargo clippy --workspace --all-targets --verbose --no-default-features
-      - run: cargo clippy --workspace --all-targets --verbose --all-features
+      - name: Clippy (default features)
+        run: cargo clippy --workspace --all-targets --verbose
+      - name: Clippy (no default features)
+        run: cargo clippy --workspace --all-targets --verbose --no-default-features
+      - name: Clippy (all features)
+        run: cargo clippy --workspace --all-targets --verbose --all-features
 
   rustfmt:
     name: Verify code formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - run: cargo fmt --all -- --check
+      - name: Check formatting
+        run: cargo fmt --all -- --check
 
   codespell:
     name: Verify code spelling
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: |
-          pip install codespell
-          codespell -L crate
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install codespell
+        run: |
+          pip3 install --upgrade pip
+          pip3 install codespell
+      - name: Check spelling
+        run: codespell -L crate

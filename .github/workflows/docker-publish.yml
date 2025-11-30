@@ -1,0 +1,59 @@
+name: docker
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check for Dockerfile
+        id: check_dockerfile
+        run: |
+          if [ -f "Dockerfile" ] || [ -f "docker/Dockerfile" ]; then
+            echo "dockerfile_exists=true" >> $GITHUB_OUTPUT
+            echo "Dockerfile found"
+          else
+            echo "dockerfile_exists=false" >> $GITHUB_OUTPUT
+            echo "No Dockerfile found, skipping Docker build"
+          fi
+      - name: Check DockerHub credentials
+        id: check_creds
+        if: steps.check_dockerfile.outputs.dockerfile_exists == 'true'
+        run: |
+          if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ] && [ -n "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "has_creds=true" >> $GITHUB_OUTPUT
+            echo "DockerHub credentials found"
+          else
+            echo "has_creds=false" >> $GITHUB_OUTPUT
+            echo "DockerHub credentials not configured, will build but not push"
+          fi
+      - name: Set up QEMU
+        if: steps.check_dockerfile.outputs.dockerfile_exists == 'true'
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        if: steps.check_dockerfile.outputs.dockerfile_exists == 'true'
+        uses: docker/setup-buildx-action@v3
+      - name: Login to DockerHub
+        if: steps.check_dockerfile.outputs.dockerfile_exists == 'true' && steps.check_creds.outputs.has_creds == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        if: steps.check_dockerfile.outputs.dockerfile_exists == 'true'
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          push: ${{ steps.check_creds.outputs.has_creds == 'true' }}
+          tags: ${{ github.repository_owner }}/${{ github.event.repository.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Image digest
+        if: steps.check_dockerfile.outputs.dockerfile_exists == 'true' && steps.docker_build.outputs.digest != ''
+        run: echo ${{ steps.docker_build.outputs.digest }}

@@ -1,0 +1,21 @@
+// Configuration for markdownlint-cli2
+{
+  // Use the existing markdownlint configuration
+  "config": {
+    "extends": ".markdownlint.json"
+  },
+  
+  // Explicitly ignore these patterns
+  "ignores": [
+    "*.ignore.md",
+    "**/*.ignore.md",
+    "target/**",
+    "node_modules/**"
+  ],
+  
+  // Glob patterns to include
+  "globs": [
+    "**/*.md"
+  ]
+}
+

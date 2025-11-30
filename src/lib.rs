@@ -10,218 +10,95 @@
     unused_import_braces,
     unused_qualifications
 )]
+#![doc = include_str!("../README.md")]
 
-//! general hex lib
+//! # hx - Overview
+//!
+//! A modern hex viewer library that displays file contents in hexadecimal format
+//! with ASCII representation. This library provides the core functionality for
+//! the `hx` command-line tool.
+//!
+//! ## Features
+//!
+//! - **Multiple input sources**: Read from files or stdin
+//! - **Flexible output formats**: Support for octal, hexadecimal (lower/upper),
+//!   binary, pointer, and exponential formats
+//! - **Array output modes**: Generate code arrays in various programming languages
+//!   (Rust, C, Go, Python, etc.)
+//! - **Colorization**: ANSI color codes for better readability (automatically
+//!   disabled for non-terminal outputs)
+//! - **Configurable display**: Customizable column width, byte truncation, and
+//!   formatting options
+//!
+//! ## Core Concepts
+//!
+//! The library processes binary data and displays it in a traditional hex editor
+//! format:
+//!
+//! - **Offset**: Memory address or byte position (displayed in hexadecimal)
+//! - **Hex values**: Bytes represented as hexadecimal values (grouped by column width)
+//! - **ASCII representation**: Printable characters corresponding to each byte
+//!
+//! ## Usage
+//!
+//! The main entry point is the [`run`] function, which processes command-line
+//! arguments and executes the hex viewing operation.
+//!
+//! ## Modules
+//!
+//! The library is organized into several internal modules:
+//!
+//! - **args**: Command-line argument parsing and validation
+//! - **array_output**: Generate programming language array formats
+//! - **buffer**: Buffer reading and conversion utilities
+//! - **format**: Output format definitions and handling
+//! - **function_output**: Mathematical function wave generation
+//! - **models**: Data structures for hex display (Line, Page)
+//! - **output**: Low-level output formatting and printing functions
+
 extern crate ansi_term;
 extern crate clap;
 
+// Module declarations
+mod args;
+mod array_output;
+mod buffer;
+mod format;
+mod function_output;
+mod models;
+mod output;
+
+// Re-exports for public API compatibility
+pub use args::{
+    ARG_ARR, ARG_CLR, ARG_COL, ARG_FMT, ARG_FNC, ARG_INP, ARG_LEN, ARG_PFX, ARG_PLC, is_stdin,
+};
+pub use array_output::output_array;
+pub use buffer::buf_to_array;
+pub use format::{Format, FormatError};
+pub use function_output::output_function;
+pub use models::{Line, Page};
+pub use output::{append_ascii, byte_to_color, offset, print_byte, print_offset};
+
 use clap::ArgMatches;
 use no_color::is_no_color;
-use std::env;
 use std::error::Error;
-use std::f64;
 use std::fs;
 use std::io::BufReader;
 use std::io::IsTerminal;
-use std::io::{self, BufRead, Read, Write};
+use std::io::{self, BufRead, Write};
 
-/// arg cols
-pub const ARG_COL: &str = "cols";
-/// arg len
-pub const ARG_LEN: &str = "len";
-/// arg format
-pub const ARG_FMT: &str = "format";
-/// arg INPUTFILE
-pub const ARG_INP: &str = "INPUTFILE";
-/// arg color
-pub const ARG_CLR: &str = "color";
-/// arg array
-pub const ARG_ARR: &str = "array";
-/// arg func
-pub const ARG_FNC: &str = "func";
-/// arg places
-pub const ARG_PLC: &str = "places";
-/// arg prefix
-pub const ARG_PFX: &str = "prefix";
-
-const ARGS: [&str; 9] = [
-    ARG_COL, ARG_LEN, ARG_FMT, ARG_INP, ARG_CLR, ARG_ARR, ARG_FNC, ARG_PLC, ARG_PFX,
-];
-
-const DBG: u8 = 0x0;
-
-/// nothing ⇒ Display
-/// ? ⇒ Debug
-/// o ⇒ Octal
-/// x ⇒ LowerHex
-/// X ⇒ UpperHex
-/// p ⇒ Pointer
-/// b ⇒ Binary
-/// e ⇒ LowerExp
-/// E ⇒ UpperExp
-/// evaluate for traits implementation
-#[derive(Copy, Clone, Debug)]
-pub enum Format {
-    /// octal format
-    Octal,
-    /// lower hex format
-    LowerHex,
-    /// upper hex format
-    UpperHex,
-    /// pointer format
-    Pointer,
-    /// binary format
-    Binary,
-    /// lower exp format
-    LowerExp,
-    /// upper exp format
-    UpperExp,
-    /// unknown format
-    Unknown,
-}
-
-impl Format {
-    /// Formats a given u8 according to the base Format
-    ///
-    /// # Arguments
-    ///
-    /// * `data` - The byte to be formatted
-    /// * `prefix` - whether or not to add a prefix
-    fn format(&self, data: u8, prefix: bool) -> String {
-        if prefix {
-            match &self {
-                Self::Octal => format!("{:#06o}", data),
-                Self::LowerHex => format!("{:#04x}", data),
-                Self::UpperHex => format!("{:#04X}", data),
-                Self::Binary => format!("{:#010b}", data),
-                _ => panic!("format is not implemented for this Format"),
-            }
-            .to_string()
-        } else {
-            match &self {
-                Self::Octal => format!("{:04o}", data),
-                Self::LowerHex => format!("{:02x}", data),
-                Self::UpperHex => format!("{:02X}", data),
-                Self::Binary => format!("{:08b}", data),
-                _ => panic!("format is not implemented for this Format"),
-            }
-            .to_string()
-        }
-    }
-}
-
-/// Line structure for hex output
-#[derive(Clone, Debug, Default)]
-pub struct Line {
-    /// offset
-    pub offset: u64,
-    /// hex body
-    pub hex_body: Vec<u8>,
-    /// ascii text
-    pub ascii: Vec<u8>,
-    /// total bytes in Line
-    pub bytes: u64,
-}
-/// Line implementation
-impl Line {
-    /// Line constructor
-    pub fn new() -> Line {
-        Line {
-            offset: 0x0,
-            hex_body: Vec::new(),
-            ascii: Vec::new(),
-            bytes: 0x0,
-        }
-    }
-}
-
-/// Page structure
-#[derive(Clone, Debug, Default)]
-pub struct Page {
-    /// page offset
-    pub offset: u64,
-    /// page body
-    pub body: Vec<Line>,
-    /// total bytes in page
-    pub bytes: u64,
-}
-
-/// Page implementation
-impl Page {
-    /// Page constructor
-    pub fn new() -> Page {
-        Page {
-            offset: 0x0,
-            body: Vec::new(),
-            bytes: 0x0,
-        }
-    }
-}
-
-/// offset column
+/// Main entry point for processing hex viewer operations.
 ///
-/// # Arguments
+/// This function processes command-line arguments and executes the appropriate
+/// hex viewing operation. It supports two main modes:
 ///
-/// * `b` - offset value.
-pub fn offset(b: u64) -> String {
-    format!("{:#08x}", b)
-}
-
-/// print offset to std out
-pub fn print_offset(w: &mut impl Write, b: u64) -> io::Result<()> {
-    write!(w, "{}: ", offset(b))
-}
-
-/// print byte to std out
-pub fn print_byte(
-    w: &mut impl Write,
-    b: u8,
-    format: Format,
-    colorize: bool,
-    prefix: bool,
-) -> io::Result<()> {
-    let fmt_string = format.format(b, prefix);
-    if colorize {
-        // note, for color testing: for (( i = 0; i < 256; i++ )); do echo "$(tput setaf $i)This is ($i) $(tput sgr0)"; done
-        let color = byte_to_color(b);
-        write!(
-            w,
-            "{} ",
-            ansi_term::Style::new()
-                .fg(ansi_term::Color::Fixed(color))
-                .paint(fmt_string)
-        )
-    } else {
-        write!(w, "{} ", fmt_string)
-    }
-}
-
-/// get the color for a specific byte
-pub fn byte_to_color(b: u8) -> u8 {
-    let mut color: u8 = b;
-    if color < 1 {
-        color = 0x16;
-    }
-    color
-}
-
-/// append char representation of a byte to a buffer
-pub fn append_ascii(target: &mut Vec<u8>, b: u8, colorize: bool) {
-    let char = match b > 31 && b < 127 {
-        true => b as char,
-        false => '.',
-    };
-
-    if colorize {
-        let string = ansi_term::Style::new()
-            .fg(ansi_term::Color::Fixed(byte_to_color(b)))
-            .paint(char.to_string());
-        target.extend(format!("{}", string).as_bytes());
-    } else {
-        target.extend(format!("{}", char).as_bytes());
-    }
-}
-
+/// 1. **Function wave generation**: When the `func` argument is provided,
+///    generates and outputs a mathematical sine wave function.
+/// 2. **Hex viewing**: Processes input data (from file or stdin) and displays
+///    it in hexadecimal format with ASCII representation.
+///
+/// ## Display Format
+///
 /// In most hex editor applications, the data of the computer file is
 /// represented as hexadecimal values grouped in 4 groups of 4 bytes (or
 /// two groups of 8 bytes), followed by one group of 16 printable ASCII
@@ -230,9 +107,107 @@ pub fn append_ascii(target: &mut Vec<u8>, b: u8, colorize: bool) {
 /// more than one character space (e.g., tab) are typically represented by a
 /// dot (".") in the following ASCII field.
 ///
-/// # Arguments
+/// ## Input Sources
 ///
-/// * `matches` - Argument matches from command line.
+/// The function can read from:
+/// - **File**: When a file path is provided as a positional argument
+/// - **Stdin**: When no file path is provided and data is piped in
+///
+/// ## Output Modes
+///
+/// - **Standard hex view**: Traditional hex dump format with offset, hex bytes, and ASCII
+/// - **Array output**: Generate code arrays in various programming languages
+///   (specified via the `array` argument: "r" for Rust, "c" for C, etc.)
+///
+/// ## Format Options
+///
+/// Supported output formats (via `format` argument):
+/// - `"o"`: Octal
+/// - `"x"`: Lowercase hexadecimal (default)
+/// - `"X"`: Uppercase hexadecimal
+/// - `"p"`: Pointer format
+/// - `"b"`: Binary
+/// - `"e"`: Lowercase exponential
+/// - `"E"`: Uppercase exponential
+///
+/// ## Colorization
+///
+/// Color output is automatically disabled when:
+/// - The `NO_COLOR` environment variable is set
+/// - Output is not a terminal (e.g., when piping to another command)
+///
+/// Color can be explicitly controlled via the `color` argument (`0` = off, `1` = on).
+///
+/// ## Arguments
+///
+/// * `matches` - Argument matches from command line parsing (clap `ArgMatches`)
+///
+/// ## Returns
+///
+/// Returns `Ok(())` on success, or `Err(Box<dyn Error>)` if:
+/// - File cannot be opened or read
+/// - Invalid argument values are provided (e.g., non-numeric column width)
+/// - I/O errors occur during reading or writing
+///
+/// ## Examples
+///
+/// ### Reading from a file
+///
+/// ```rust,no_run
+/// use clap::Command;
+/// use hx::run;
+///
+/// let matches = Command::new("hx")
+///     .arg(clap::Arg::new("input").index(1))
+///     .get_matches_from(vec!["hx", "Cargo.toml"]);
+///
+/// run(matches)?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
+///
+/// ### Reading from stdin
+///
+/// ```rust,no_run
+/// use clap::Command;
+/// use hx::run;
+///
+/// // In practice, this would be called with stdin data piped in:
+/// // $ echo "hello" | hx
+/// let matches = Command::new("hx").get_matches_from(vec!["hx"]);
+/// run(matches)?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
+///
+/// ### Custom column width and format
+///
+/// ```rust,no_run
+/// use clap::Command;
+/// use hx::run;
+///
+/// let matches = Command::new("hx")
+///     .arg(clap::Arg::new("input").index(1))
+///     .arg(clap::Arg::new("cols").short('c').long("cols"))
+///     .arg(clap::Arg::new("format").short('f').long("format"))
+///     .get_matches_from(vec!["hx", "file.bin", "-c", "16", "-f", "X"]);
+///
+/// run(matches)?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
+///
+/// ### Array output mode (Rust format)
+///
+/// ```rust,no_run
+/// use clap::Command;
+/// use hx::run;
+///
+/// let matches = Command::new("hx")
+///     .arg(clap::Arg::new("input").index(1))
+///     .arg(clap::Arg::new("array").short('a').long("array"))
+///     .get_matches_from(vec!["hx", "data.bin", "-a", "r"]);
+///
+/// run(matches)?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
     let mut column_width: u64 = 10;
     let mut truncate_len: u64 = 0x0;
@@ -247,20 +222,25 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        output_function(len.parse::<u64>().unwrap(), p);
+        let length = len.parse::<u64>().map_err(|e| {
+            eprintln!("-u, --func <integer> expected. {:?}", e);
+            e
+        })?;
+        output_function(length, p);
     } else {
         // cases:
         //  $ cat Cargo.toml | target/debug/hx
         //  $ cat Cargo.toml | target/debug/hx -a r
         //  $ target/debug/hx Cargo.toml
         //  $ target/debug/hx Cargo.toml -a r
-        let is_stdin = is_stdin(matches.clone());
-        let mut buf: Box<dyn BufRead> = if is_stdin.unwrap() {
+        let is_stdin = is_stdin(matches.clone())?;
+        let mut buf: Box<dyn BufRead> = if is_stdin {
             Box::new(BufReader::new(io::stdin()))
         } else {
-            Box::new(BufReader::new(fs::File::open(
-                matches.get_one::<String>(ARG_INP).unwrap(),
-            )?))
+            let input_file = matches.get_one::<String>(ARG_INP).ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidInput, "Input file not specified")
+            })?;
+            Box::new(BufReader::new(fs::File::open(input_file)?))
         };
         let mut format_out = Format::LowerHex;
         let mut colorize = true;
@@ -314,11 +294,17 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
         }
 
         if let Some(color) = matches.get_one::<String>(ARG_CLR) {
-            colorize = color.parse::<u8>().unwrap() == 1;
+            colorize = color.parse::<u8>().map_err(|e| {
+                eprintln!("-t, --color <0|1> expected. {:?}", e);
+                e
+            })? == 1;
         }
 
         if let Some(prefix_flag) = matches.get_one::<String>(ARG_PFX) {
-            prefix = prefix_flag.parse::<u8>().unwrap() == 1;
+            prefix = prefix_flag.parse::<u8>().map_err(|e| {
+                eprintln!("-r, --prefix <0|1> expected. {:?}", e);
+                e
+            })? == 1;
         }
 
         // array output mode is mutually exclusive
@@ -372,233 +358,20 @@ pub fn run(matches: ArgMatches) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Detect stdin, file path and/or parameters.
-/// # Arguments
-///
-/// * `matches` - argument matches.
-#[allow(clippy::absurd_extreme_comparisons)]
-pub fn is_stdin(matches: ArgMatches) -> Result<bool, Box<dyn Error>> {
-    let mut is_stdin = false;
-    if let Some(file) = matches.get_one::<String>(ARG_INP) {
-        if DBG > 0 {
-            dbg!(file);
-        }
-        is_stdin = false;
-    } else if let Some(nth1) = env::args().nth(1) {
-        if DBG > 0 {
-            dbg!(nth1);
-        }
-        is_stdin = ARGS.iter().any(|arg| matches.index_of(arg) == Some(2));
-    } else if !matches.args_present() {
-        is_stdin = true;
-    }
-    if DBG > 0 {
-        dbg!(is_stdin);
-    }
-    Ok(is_stdin)
-}
-
-/// Output source code array format.
-/// # Arguments
-///
-/// * `array_format` - array format, rust (r), C (c), golang (g).
-/// * `buf` - BufRead.
-/// * `truncate_len` - truncate to length.
-/// * `column_width` - column width.
-pub fn output_array(
-    array_format: &str,
-    mut buf: Box<dyn BufRead>,
-    truncate_len: u64,
-    column_width: u64,
-) -> io::Result<()> {
-    let stdout = io::stdout();
-    let mut locked = stdout.lock();
-
-    let page = buf_to_array(&mut buf, truncate_len, column_width).unwrap();
-    match array_format {
-        "r" => writeln!(locked, "let ARRAY: [u8; {}] = [", page.bytes)?,
-        "c" => writeln!(locked, "unsigned char ARRAY[{}] = {{", page.bytes)?,
-        "g" => writeln!(locked, "a := [{}]byte{{", page.bytes)?,
-        "p" => writeln!(locked, "a = [")?,
-        "k" => writeln!(locked, "val a = byteArrayOf(")?,
-        "j" => writeln!(locked, "byte[] a = new byte[]{{")?,
-        "s" => writeln!(locked, "let a: [UInt8] = [")?,
-        "f" => writeln!(locked, "let a = [|")?,
-        _ => writeln!(locked, "unknown array format")?,
-    }
-    let mut i: u64 = 0x0;
-    for line in page.body.iter() {
-        write!(locked, "    ")?;
-        for hex in line.hex_body.iter() {
-            i += 1;
-            if i == page.bytes && array_format != "g" {
-                if array_format != "f" {
-                    write!(locked, "{}", Format::LowerHex.format(*hex, true))?;
-                } else {
-                    write!(locked, "{}uy", Format::LowerHex.format(*hex, true))?;
-                }
-            } else if array_format != "f" {
-                write!(locked, "{}, ", Format::LowerHex.format(*hex, true))?;
-            } else {
-                write!(locked, "{}uy; ", Format::LowerHex.format(*hex, true))?;
-            }
-        }
-        writeln!(locked)?;
-    }
-
-    writeln!(
-        locked,
-        "{}",
-        match array_format {
-            "r" => "];",
-            "c" | "j" => "};",
-            "g" => "}",
-            "p" => "]",
-            "k" => ")",
-            "s" => "]",
-            "f" => "|]",
-            _ => "unknown array format",
-        }
-    )
-}
-
-/// Function wave out.
-/// # Arguments
-///
-/// * `len` - Wave length.
-/// * `places` - Number of decimal places for function wave floats.
-pub fn output_function(len: u64, places: usize) {
-    for y in 0..len {
-        let y_float: f64 = y as f64;
-        let len_float: f64 = len as f64;
-        let x: f64 = (((y_float / len_float) * f64::consts::PI) / 2.0).sin();
-        let formatted_number = format!("{:.*}", places, x);
-        print!("{}", formatted_number);
-        print!(",");
-        if (y % 10) == 9 {
-            println!();
-        }
-    }
-    println!();
-}
-
-/// Buffer to array.
-///
-/// # Arguments
-///
-/// * `buf` - Buffer to be read.
-/// * `buf_len` - force buffer length.
-/// * `column_width` - column width for output.
-pub fn buf_to_array(
-    buf: &mut dyn Read,
-    buf_len: u64,
-    column_width: u64,
-) -> Result<Page, Box<dyn ::std::error::Error>> {
-    let mut column_count: u64 = 0x0;
-    let max_array_size: u16 = <u16>::max_value(); // 2^16;
-    let mut page: Page = Page::new();
-    let mut line: Line = Line::new();
-    for b in buf.bytes() {
-        let b1: u8 = b?;
-        line.bytes += 1;
-        page.bytes += 1;
-        line.hex_body.push(b1);
-        column_count += 1;
-
-        if column_count >= column_width {
-            page.body.push(line);
-            line = Line::new();
-            column_count = 0;
-        }
-
-        if buf_len > 0 && (page.bytes == buf_len || u64::from(max_array_size) == buf_len) {
-            break;
-        }
-    }
-    page.body.push(line);
-    Ok(page)
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-    /// @see (https://users.rust-lang.org/t/how-to-test-output-to-stdout/4877/6)
-    #[test]
-    fn test_offset() {
-        let b: u64 = 0x6;
-        assert_eq!(offset(b), "0x000006");
-        assert_eq!(offset(b), format!("{:#08x}", b));
-    }
-
-    /// hex octal, takes u8
-    #[test]
-    pub fn test_hex_octal() {
-        let b: u8 = 0x6;
-
-        //with prefix
-        assert_eq!(Format::Octal.format(b, true), "0o0006");
-        assert_eq!(Format::Octal.format(b, true), format!("{:#06o}", b));
-
-        //without prefix
-        assert_eq!(Format::Octal.format(b, false), "0006");
-        assert_eq!(Format::Octal.format(b, false), format!("{:04o}", b));
-    }
-
-    /// hex lower hex, takes u8
-    #[test]
-    fn test_hex_lower_hex() {
-        let b: u8 = <u8>::max_value(); // 255
-
-        //with prefix
-        assert_eq!(Format::LowerHex.format(b, true), "0xff");
-        assert_eq!(Format::LowerHex.format(b, true), format!("{:#04x}", b));
-
-        //without prefix
-        assert_eq!(Format::LowerHex.format(b, false), "ff");
-        assert_eq!(Format::LowerHex.format(b, false), format!("{:02x}", b));
-    }
-
-    /// hex upper hex, takes u8
-    #[test]
-    fn test_hex_upper_hex() {
-        let b: u8 = <u8>::max_value();
-
-        //with prefix
-        assert_eq!(Format::UpperHex.format(b, true), "0xFF");
-        assert_eq!(Format::UpperHex.format(b, true), format!("{:#04X}", b));
-
-        // without prefix
-        assert_eq!(Format::UpperHex.format(b, false), "FF");
-        assert_eq!(Format::UpperHex.format(b, false), format!("{:02X}", b));
-    }
-
-    /// hex binary, takes u8
-    #[test]
-    fn test_hex_binary() {
-        let b: u8 = <u8>::max_value();
-
-        // with prefix
-        assert_eq!(Format::Binary.format(b, true), "0b11111111");
-        assert_eq!(Format::Binary.format(b, true), format!("{:#010b}", b));
-
-        // without prefix
-        assert_eq!(Format::Binary.format(b, false), "11111111");
-        assert_eq!(Format::Binary.format(b, false), format!("{:08b}", b));
-    }
-
-    #[test]
-    fn test_line_struct() {
-        let mut ascii_line: Line = Line::new();
-        ascii_line.ascii.push(b'.');
-        assert_eq!(ascii_line.ascii[0], b'.');
-        assert_eq!(ascii_line.offset, 0x0);
-    }
-
     use assert_cmd::Command;
 
-    /// target/debug/hx -ar tests/files/tiny.txt
-    /// assert may have unexpected results depending on terminal:
-    ///     .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
+    /// Test CLI argument order: flags before file path
+    ///
+    /// Verifies that the `-ar` flags can be placed before the file path argument.
+    /// This tests the flexibility of argument parsing order.
+    ///
+    /// Expected behavior: Array output mode with Rust format should work
+    /// regardless of whether flags come before or after the file path.
+    ///
+    /// Note: Assertions may have unexpected results depending on terminal
+    /// configuration and color settings.
     #[test]
     fn test_cli_arg_order_1() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
@@ -606,9 +379,16 @@ mod tests {
         assert.success().code(0);
     }
 
-    /// target/debug/hx tests/files/tiny.txt -ar
-    /// assert may have unexpected results depending on terminal:
-    ///     .stdout("let ARRAY: [u8; 3] = [\n    0x69, 0x6c, 0x0a\n];\n");
+    /// Test CLI argument order: flags after file path
+    ///
+    /// Verifies that the `-ar` flags can be placed after the file path argument.
+    /// This tests the flexibility of argument parsing order.
+    ///
+    /// Expected behavior: Array output mode with Rust format should work
+    /// regardless of whether flags come before or after the file path.
+    ///
+    /// Note: Assertions may have unexpected results depending on terminal
+    /// configuration and color settings.
     #[test]
     fn test_cli_arg_order_2() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
@@ -616,8 +396,15 @@ mod tests {
         assert.success().code(0);
     }
 
-    /// target/debug/hx --len tests/files/tiny.txt
-    ///     error: invalid digit found in string
+    /// Test CLI error handling when parameter value is missing
+    ///
+    /// Verifies that the application correctly handles cases where a flag
+    /// requiring a value (like `--len`) is provided but the value is missing
+    /// or invalid.
+    ///
+    /// Expected behavior: The application should fail with exit code 1 and
+    /// display an appropriate error message indicating that an integer value
+    /// was expected.
     #[test]
     fn test_cli_missing_param_value() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
@@ -625,6 +412,13 @@ mod tests {
         assert.failure().code(1);
     }
 
+    /// Test CLI error handling when input file doesn't exist
+    ///
+    /// Verifies that the application correctly handles cases where the
+    /// specified input file cannot be found or accessed.
+    ///
+    /// Expected behavior: The application should fail with exit code 1 and
+    /// display an appropriate error message indicating the file was not found.
     #[test]
     fn test_cli_input_missing_file() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
@@ -632,6 +426,14 @@ mod tests {
         assert.failure().code(1);
     }
 
+    /// Test CLI error handling when input is a directory instead of a file
+    ///
+    /// Verifies that the application correctly rejects directory paths and
+    /// only accepts regular files as input.
+    ///
+    /// Expected behavior: The application should fail with exit code 1 and
+    /// display an appropriate error message indicating that a file was expected,
+    /// not a directory.
     #[test]
     fn test_cli_input_directory() {
         let mut cmd = Command::cargo_bin("hx").unwrap();
@@ -639,6 +441,23 @@ mod tests {
         assert.failure().code(1);
     }
 
+    /// Test CLI behavior with stdin input
+    ///
+    /// Verifies that the application correctly processes input from stdin
+    /// when no file path is provided. This test uses the `-t0` flag to disable
+    /// colorization for consistent output comparison.
+    ///
+    /// Expected behavior: The application should successfully read from stdin,
+    /// process the input bytes, and output the hex representation with ASCII
+    /// characters. The output should include the byte count at the end.
+    ///
+    /// # Example Output
+    ///
+    /// For input "012", the expected output is:
+    /// ```text
+    /// 0x000000: 0x30 0x31 0x32                                    012
+    ///    bytes: 3
+    /// ```
     #[test]
     fn test_cli_input_stdin() {
         let mut cmd = Command::cargo_bin("hx").unwrap();

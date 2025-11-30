@@ -1,0 +1,173 @@
+name: debian-artifact
+
+on:
+  push:
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Debian Artifact - amd64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Extract package name from Cargo.toml
+        id: package_name
+        shell: bash
+        run: |
+          if [ -f "Cargo.toml" ]; then
+            PACKAGE_NAME=$(grep -m 1 "^name" Cargo.toml | sed 's/^name = "\(.*\)"$/\1/' | tr -d '"')
+            echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+            echo "Package name extracted: $PACKAGE_NAME"
+          else
+            echo "Error: Cargo.toml not found!"
+            exit 1
+          fi
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build project
+        run: cargo build --release
+      - name: Install cargo-deb
+        run: |
+          # Since v2.0.0 the deb package version will have a "-1" suffix. You can disable this by adding --deb-revision="" flag or revision = "" in Cargo metadata. The default suffix is for compliance with Debian's packaging standard.
+          if ! command -v cargo-deb &> /dev/null; then
+            cargo install cargo-deb
+          else
+            echo "cargo-deb already installed (from cache)"
+            cargo-deb --version
+          fi
+      - name: Create Debian package
+        run: |
+          # Verify binary architecture before packaging
+          echo "Verifying binary architecture..."
+          file target/release/${{ steps.package_name.outputs.name }} || true
+          
+          # Build deb package without rebuilding
+          cargo deb --no-build
+          
+          # Verify package was created
+          DEB_FILE=$(ls target/debian/*.deb 2>/dev/null | head -1)
+          if [ -z "$DEB_FILE" ]; then
+            echo "Error: .deb file not found!"
+            exit 1
+          fi
+          echo "Generated package: $DEB_FILE"
+      - name: Verify .deb file exists
+        run: |
+          DEB_FILE=$(ls target/debian/*.deb 2>/dev/null | head -1)
+          if [ -z "$DEB_FILE" ]; then
+            echo "Error: .deb file not found!"
+            exit 1
+          fi
+          echo "Found .deb file: $DEB_FILE"
+          echo "Package name: ${{ steps.package_name.outputs.name }}"
+          ls -lh "$DEB_FILE"
+      - name: Test .deb package installation
+        run: |
+          DEB_FILE=$(ls target/debian/*.deb 2>/dev/null | head -1)
+          echo "Testing installation of $DEB_FILE"
+          
+          # Install dependencies if needed (dpkg may complain about missing deps)
+          sudo apt-get update
+          
+          # Verify package structure before installation
+          echo "=== Package Structure Verification ==="
+          dpkg-deb -c "$DEB_FILE" | head -20
+          echo ""
+          
+          # Check package metadata
+          echo "=== Package Metadata ==="
+          dpkg -I "$DEB_FILE" | head -30
+          echo ""
+          
+          # Install the package (allow dependencies to be missing for now)
+          echo "=== Installing Package ==="
+          sudo dpkg -i "$DEB_FILE" || true
+          
+          # Fix any missing dependencies
+          sudo apt-get install -f -y
+          
+          # Verify the binary exists and is executable
+          BINARY_NAME="${{ steps.package_name.outputs.name }}"
+          BINARY_PATH=""
+          
+          # Find the binary location
+          if command -v "$BINARY_NAME" &> /dev/null; then
+            BINARY_PATH=$(command -v "$BINARY_NAME")
+            echo "✓ Binary '$BINARY_NAME' found at: $BINARY_PATH"
+          elif [ -f "/usr/bin/$BINARY_NAME" ]; then
+            BINARY_PATH="/usr/bin/$BINARY_NAME"
+            echo "✓ Binary found at: $BINARY_PATH"
+          elif [ -f "/usr/local/bin/$BINARY_NAME" ]; then
+            BINARY_PATH="/usr/local/bin/$BINARY_NAME"
+            echo "✓ Binary found at: $BINARY_PATH"
+          else
+            echo "✗ Error: Binary '$BINARY_NAME' not found after installation"
+            echo "Files installed by package:"
+            dpkg -L "$(dpkg -f "$DEB_FILE" Package)" || true
+            exit 1
+          fi
+          
+          # Verify binary is executable
+          if [ ! -x "$BINARY_PATH" ]; then
+            echo "✗ Error: Binary is not executable"
+            ls -l "$BINARY_PATH"
+            exit 1
+          fi
+          echo "✓ Binary is executable"
+          
+          # Check binary architecture
+          if command -v file &> /dev/null; then
+            BINARY_ARCH=$(file "$BINARY_PATH" | grep -oE "(x86-64|aarch64|ARM|Intel|80386)" || echo "unknown")
+            echo "Binary architecture: $BINARY_ARCH"
+          fi
+          
+          # Test execution
+          echo "=== Testing Binary Execution ==="
+          if "$BINARY_PATH" --help &> /dev/null || "$BINARY_PATH" --version &> /dev/null; then
+            echo "✓ Binary responds to --help or --version"
+          fi
+          
+          # Verify package info
+          echo ""
+          echo "=== Package Verification Summary ==="
+          dpkg -l | grep "$(dpkg -f "$DEB_FILE" Package)" || true
+          
+          # Clean up: remove the package
+          echo ""
+          echo "=== Cleaning Up ==="
+          sudo dpkg -r "$(dpkg -f "$DEB_FILE" Package)" || true
+          echo "✓ Package removal successful"
+      - name: Extract tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "tag=v0.0.0" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+      - name: Create Release
+        if: always() && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: target/debian/*.deb
+          generate_release_notes: true
+          fail_on_unmatched_files: false

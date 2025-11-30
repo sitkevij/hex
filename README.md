@@ -1,4 +1,4 @@
-# hex (hx)
+# hx
 
 Futuristic take on hexdump.
 
@@ -33,7 +33,8 @@ cat tests/files/alphanumeric.txt | hx
    bytes: 68
 ```
 
-[![crates.io](https://img.shields.io/crates/v/hx.svg)](https://crates.io/crates/hx)
+[![crates.io](https://img.shields.io/crates/v/hx.svg)](https://crates.io/crates/hx "hx on crates.io")
+[![docs.rs](https://img.shields.io/badge/documentation-docs.rs-informational)](https://docs.rs/hx "hx on docs.rs")
 [![build status](https://github.com/sitkevij/hex/workflows/ci/badge.svg)](https://github.com/sitkevij/hex/actions)
 
 ## quick links
@@ -109,8 +110,8 @@ pacman -S hex
 
 ### debian install
 
-Browse https://github.com/sitkevij/hex/releases/latest to choose `VERSION` for use with this debian
-installation example:
+Browse [the latest releases](https://github.com/sitkevij/hex/releases/latest) to choose `VERSION`
+for use with this debian installation example:
 
 ```sh
 VERSION=0.6.0 && curl -sLO "https://github.com/sitkevij/hex/releases/download/v$VERSION/hx_$VERSION-1_amd64.deb" && dpkg -i "hx_$VERSION-1_amd64.deb"

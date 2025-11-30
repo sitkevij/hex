@@ -18,3 +18,5 @@
 tarpaulin-report.html
 cobertura.xml
 trend.svg
+*.ignore.md
+.today_date

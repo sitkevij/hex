@@ -1,3 +1,10 @@
+//! # hx - Hexadecimal Viewer
+//!
+//! A modern hex viewer utility that displays file contents in hexadecimal format
+//! with ASCII representation. Supports multiple output formats including various
+//! programming language array formats (Rust, C, Go, Python, etc.) and different
+//! numeric bases (binary, octal, hexadecimal).
+
 extern crate clap;
 
 use clap::Arg;
