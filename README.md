@@ -114,7 +114,7 @@ Browse [the latest releases](https://github.com/sitkevij/hex/releases/latest) to
 for use with this debian installation example:
 
 ```sh
-VERSION=0.6.0 && curl -sLO "https://github.com/sitkevij/hex/releases/download/v$VERSION/hx_$VERSION-1_amd64.deb" && dpkg -i "hx_$VERSION-1_amd64.deb"
+VERSION=0.7.0 && curl -sLO "https://github.com/sitkevij/hex/releases/download/v$VERSION/hx_$VERSION-1_amd64.deb" && dpkg -i "hx_$VERSION-1_amd64.deb"
 ```
 
 ### guix install
