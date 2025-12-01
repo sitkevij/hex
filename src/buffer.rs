@@ -17,7 +17,7 @@
 //! assert_eq!(page.bytes, 5);
 //! assert_eq!(page.body.len(), 2); // 4 bytes + 1 byte on second line
 //! ```
-
+#![allow(clippy::unbuffered_bytes)]
 use crate::models::{Line, Page};
 use std::error::Error;
 use std::io::Read;
