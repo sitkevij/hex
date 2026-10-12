@@ -69,3 +69,53 @@ fn test_binary_execution_flags_before_file() {
     cmd.arg("-a").arg("r").arg("tests/files/tiny.txt");
     cmd.assert().success();
 }
+
+/// Combined `-ar` before the file path (short-flag bundling).
+#[test]
+fn test_cli_arg_order_1() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+    let assert = cmd.arg("-ar").arg("tests/files/tiny.txt").assert();
+    assert.success().code(0);
+}
+
+/// Combined `-ar` after the file path (short-flag bundling).
+#[test]
+fn test_cli_arg_order_2() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+    let assert = cmd.arg("tests/files/tiny.txt").arg("-ar").assert();
+    assert.success().code(0);
+}
+
+/// `--len` without an integer value should fail.
+#[test]
+fn test_cli_missing_param_value() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+    let assert = cmd.arg("--len").arg("tests/files/tiny.txt").assert();
+    assert.failure().code(1);
+}
+
+/// Missing input file should fail.
+#[test]
+fn test_cli_input_missing_file() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+    let assert = cmd.arg("missing-file").assert();
+    assert.failure().code(1);
+}
+
+/// Directory path instead of a file should fail.
+#[test]
+fn test_cli_input_directory() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+    let assert = cmd.arg("src").assert();
+    assert.failure().code(1);
+}
+
+/// Stdin with color disabled (`-t0`) should match exact hex output.
+#[test]
+fn test_cli_input_stdin() {
+    let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
+    let assert = cmd.arg("-t0").write_stdin("012").assert();
+    assert.success().code(0).stdout(
+        "0x000000: 0x30 0x31 0x32                                    012\n   bytes: 3\n",
+    );
+}
