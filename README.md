@@ -1,4 +1,4 @@
-# hx
+# hex (binary: hx)
 
 Futuristic take on hexdump.
 

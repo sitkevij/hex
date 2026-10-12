@@ -33,10 +33,10 @@ panic = 'unwind' # panic strategy (`-C panic=...`), can also be 'abort'
 opt-level = 3
 
 [dependencies]
-clap = "4.5"
-ansi_term = "0.12"
-no_color = "0.2"
+clap = "=4.5.13"
+ansi_term = "=0.12.1"
+no_color = "=0.2.0"
 
 [dev-dependencies]
-assert_cmd = "2.0"
-rusty-hook = "^0.11"
+assert_cmd = "=2.0.12"
+rusty-hook = "=0.11.2"
