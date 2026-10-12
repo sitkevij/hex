@@ -115,7 +115,8 @@ fn test_cli_input_directory() {
 fn test_cli_input_stdin() {
     let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
     let assert = cmd.arg("-t0").write_stdin("012").assert();
-    assert.success().code(0).stdout(
-        "0x000000: 0x30 0x31 0x32                                    012\n   bytes: 3\n",
-    );
+    assert
+        .success()
+        .code(0)
+        .stdout("0x000000: 0x30 0x31 0x32                                    012\n   bytes: 3\n");
 }
